@@ -1,7 +1,7 @@
 import 'package:circlo_app/ui/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'utils/app_theme.dart';
-// import 'ui/auth/onboarding_screen.dart';
+import 'ui/auth/onboarding_screen.dart';
 
 // later you'll import supabase and other services, but not yet for frontend-only phase
 
@@ -18,8 +18,7 @@ class CircloApp extends StatelessWidget {
       title: 'Circlo',
       debugShowCheckedModeBanner: false,
       theme: circloTheme,
-      home: const LoginScreen(),
-      // home: const OnboardingScreen(),
+      home: const OnboardingScreen(),
     );
   }
 }
