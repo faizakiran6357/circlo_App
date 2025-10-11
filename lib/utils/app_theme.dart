@@ -11,8 +11,8 @@ ThemeData circloTheme = ThemeData(
   primaryColor: kGreen,
   colorScheme: ColorScheme.fromSeed(seedColor: kGreen),
   textTheme: const TextTheme(
-    titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kTextDark),
-    bodyMedium: TextStyle(fontSize: 16, color: kTextDark),
+    titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kTextDark),
+    bodyMedium: TextStyle(fontSize: 14, color: kTextDark),
   ),
   inputDecorationTheme: InputDecorationTheme(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

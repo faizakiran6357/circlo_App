@@ -1,3 +1,4 @@
+import 'package:circlo_app/ui/auth/radius_selection_screen.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 // import 'radius_selection_screen.dart';
@@ -30,9 +31,9 @@ class LocationPermissionScreen extends StatelessWidget {
                   backgroundColor: kGreen,
                   minimumSize: const Size(double.infinity, 50)),
               onPressed: () {
-                // Navigator.pushReplacement(
-                //     context,
-                //     MaterialPageRoute(builder: (_) => const RadiusSelectionScreen()));
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RadiusSelectionScreen()));
               },
               child: const Text("Allow Location Access"),
             ),

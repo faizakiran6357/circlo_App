@@ -1,3 +1,4 @@
+import 'package:circlo_app/ui/home/home_feed_screen.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 
@@ -44,8 +45,8 @@ class _RadiusSelectionScreenState extends State<RadiusSelectionScreen> {
                   backgroundColor: kGreen,
                   minimumSize: const Size(double.infinity, 50)),
               onPressed: () {
-                // Navigator.pushReplacement(
-                //     context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => const HomeFeedScreen()));
               },
               child: const Text("Continue"),
             ),
