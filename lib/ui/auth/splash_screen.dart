@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     // 🔹 Navigate to Onboarding after delay
-    Timer(const Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
