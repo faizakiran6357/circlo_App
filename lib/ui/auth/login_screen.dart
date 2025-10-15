@@ -161,15 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               emailController.text.trim(),
                               passwordController.text.trim(),
                             );
-
-                            // if (response?.user != null && context.mounted) {
-                            //   Navigator.pushReplacement(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (_) => const LocationPermissionScreen(),
-                            //     ),
-                            //   );
-                            // }
                             if (response?.user != null && context.mounted) {
   await SupabaseAuthService.syncUserProfile(); // 👈 Add this line
   Navigator.pushReplacement(

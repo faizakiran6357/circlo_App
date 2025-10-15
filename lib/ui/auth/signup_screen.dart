@@ -158,13 +158,6 @@ class _SignupScreenState extends State<SignupScreen> {
                               passwordController.text.trim(),
                               nameController.text.trim(),
                             );
-
-                            // if (response?.user != null && context.mounted) {
-                            //   Navigator.pushReplacement(
-                            //     context,
-                            //     MaterialPageRoute(builder: (_) => const RadiusSelectionScreen()),
-                            //   );
-                            // }
                             if (response?.user != null && context.mounted) {
   await SupabaseAuthService.syncUserProfile(); // 👈 Add this
   Navigator.pushReplacement(

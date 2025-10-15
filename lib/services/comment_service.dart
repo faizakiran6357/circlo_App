@@ -1,18 +1,4 @@
-// import '../models/comment.dart';
 
-// class CommentService {
-//   static Future<List<Comment>> fetchComments(String itemId) async {
-//     return [
-//       Comment(
-//         id: '1',
-//         itemId: itemId,
-//         userId: 'faiza',
-//         text: 'This looks great!',
-//         createdAt: DateTime.now(),
-//       ),
-//     ];
-//   }
-// }
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/comment.dart';
 

@@ -1,38 +1,4 @@
-// import '../models/chat.dart';
-// import '../models/message.dart';
 
-// class ChatService {
-//   static Future<List<Chat>> fetchChats() async {
-//     return [
-//       Chat(
-//         id: '1',
-//         user1Id: 'faiza',
-//         user2Id: 'aniqa',
-//         lastMessage: 'Hey, still available?',
-//         updatedAt: DateTime.now(),
-//       ),
-//     ];
-//   }
-
-//   static Future<List<Message>> fetchMessages(String chatId) async {
-//     return [
-//       Message(
-//         id: '1',
-//         chatId: chatId,
-//         senderId: 'faiza',
-//         text: 'Hello!',
-//         createdAt: DateTime.now(),
-//       ),
-//       Message(
-//         id: '2',
-//         chatId: chatId,
-//         senderId: 'aniqa',
-//         text: 'Hi! How are you?',
-//         createdAt: DateTime.now(),
-//       ),
-//     ];
-//   }
-// }
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/chat.dart';
 import '../models/message.dart';

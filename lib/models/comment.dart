@@ -1,18 +1,4 @@
-// class Comment {
-//   final String id;
-//   final String itemId;
-//   final String userId;
-//   final String text;
-//   final DateTime createdAt;
 
-//   Comment({
-//     required this.id,
-//     required this.itemId,
-//     required this.userId,
-//     required this.text,
-//     required this.createdAt,
-//   });
-// }
 class Comment {
   final String id;
   final String itemId;

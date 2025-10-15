@@ -1,42 +1,4 @@
-// import 'package:flutter/material.dart';
-// import '../models/message.dart';
-
-// class ChatProvider extends ChangeNotifier {
-//   final List<Message> _messages = [];
-
-//   List<Message> get messages => _messages;
-
-//   /// 🟢 Send a new chat message (locally + later via Supabase)
-//   void sendMessage({
-//     required String chatId,
-//     required String senderId,
-//     required String receiverId,
-//     required String text,
-//   }) {
-//     if (text.trim().isEmpty) return;
-
-//     final newMessage = Message(
-//       id: DateTime.now().millisecondsSinceEpoch.toString(),
-//       chatId: chatId,
-//       senderId: senderId,
-//       receiverId: receiverId,
-//       text: text.trim(),
-//       createdAt: DateTime.now(),
-//     );
-
-//     _messages.add(newMessage);
-//     notifyListeners();
-
-//     // 🔜 Later we’ll add Supabase insert here
-//     // Supabase.instance.client.from('messages').insert(newMessage.toMap());
-//   }
-
-//   /// 🟢 Clear messages (optional helper)
-//   void clearMessages() {
-//     _messages.clear();
-//     notifyListeners();
-//   }
-// }
+ 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
