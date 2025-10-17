@@ -301,17 +301,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.currentIndex;
   }
 
   void _handleTap(int index) {
-    if (_selectedIndex == index) return;
-    setState(() => _selectedIndex = index);
+    // if (_selectedIndex == index) return;
     widget.onTap(index);
   }
 
   @override
   Widget build(BuildContext context) {
+    _selectedIndex = widget.currentIndex;
     const double barHeight = 70;
     const double fabOuter = 60; // tighter circle like screenshot
     const double fabInner = 52;

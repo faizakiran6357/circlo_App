@@ -48,6 +48,7 @@ dependencies:
   geocoding: ^4.0.0
   path_provider: ^2.1.5
   lucide_icons: ^0.257.0
+  clustering_google_maps: ^0.1.2-nullsafety.3
 
 dev_dependencies:
   flutter_test:

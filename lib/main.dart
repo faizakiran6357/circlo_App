@@ -1,5 +1,6 @@
 
 import 'package:circlo_app/providers/exchange_provider.dart';
+import 'package:circlo_app/providers/navigtation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,7 +10,7 @@ import 'utils/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/items_provider.dart';
 import 'providers/chat_provider.dart';
-import 'providers/comment_provider.dart';
+
 
 // 🧭 Screens
 import 'ui/auth/splash_screen.dart';
@@ -29,8 +30,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ItemsProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProvider(create: (_) => CommentProvider()),
         ChangeNotifierProvider(create: (_) => ExchangeProvider()),
+          ChangeNotifierProvider(create: (_) => NavigtationProvider()),
       ],
       child: const CircloApp(),
     ),
