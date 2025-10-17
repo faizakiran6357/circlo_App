@@ -1,48 +1,4 @@
-// import 'package:flutter/material.dart';
-// import '../models/exchange_model.dart';
-// import '../services/exchange_service.dart';
 
-// class ExchangeProvider extends ChangeNotifier {
-//   List<Exchange> _exchanges = [];
-//   bool loading = false;
-
-//   List<Exchange> get exchanges => _exchanges;
-
-//   Future<void> loadUserExchanges(String userId) async {
-//     try {
-//       loading = true;
-//       notifyListeners();
-//       _exchanges = await ExchangeService.fetchUserExchanges(userId);
-//     } catch (e) {
-//       debugPrint('❌ Error loading exchanges: $e');
-//     } finally {
-//       loading = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   Future<void> updateStatus(String id, String status) async {
-//     try {
-//       await ExchangeService.updateExchangeStatus(id, status);
-//       final index = _exchanges.indexWhere((e) => e.id == id);
-//       if (index != -1) {
-//         _exchanges[index] = Exchange(
-//           id: _exchanges[index].id,
-//           itemId: _exchanges[index].itemId,
-//           proposerId: _exchanges[index].proposerId,
-//           offeredItemIds: _exchanges[index].offeredItemIds,
-//           status: status,
-//           createdAt: _exchanges[index].createdAt,
-//           updatedAt: DateTime.now(),
-//           meetupLocation: _exchanges[index].meetupLocation,
-//         );
-//         notifyListeners();
-//       }
-//     } catch (e) {
-//       debugPrint('❌ Update status error: $e');
-//     }
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/exchange_model.dart';

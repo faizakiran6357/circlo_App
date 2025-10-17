@@ -232,4 +232,25 @@ class SupabaseItemService {
       rethrow;
     }
   }
+    // ----------------------------------------------------------
+  // 🟢 Fetch Current User's Items
+  // ----------------------------------------------------------
+  static Future<List<Item>> getCurrentUserItems() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
+
+    try {
+      final res = await supabase
+          .from('items')
+          .select()
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      return _mapListToItems(res);
+    } catch (e) {
+      print('❌ Error fetching current user items: $e');
+      rethrow;
+    }
+  }
+
 }

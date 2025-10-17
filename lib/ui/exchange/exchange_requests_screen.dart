@@ -1,121 +1,9 @@
-// import 'package:circlo_app/ui/exchange/exchange_history_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import '../../services/exchange_service.dart';
 // import '../../utils/app_theme.dart';
-
-// class ExchangeRequestsScreen extends StatefulWidget {
-//   const ExchangeRequestsScreen({super.key});
-
-//   @override
-//   State<ExchangeRequestsScreen> createState() => _ExchangeRequestsScreenState();
-// }
-
-// class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
-//   List<Map<String, dynamic>> _proposals = [];
-//   bool _loading = true;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadProposals();
-//   }
-
-//   Future<void> _loadProposals() async {
-//     setState(() => _loading = true);
-//     try {
-//       final data = await ExchangeService.fetchIncomingProposals();
-//       setState(() => _proposals = data);
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error loading proposals: $e')),
-//       );
-//     } finally {
-//       setState(() => _loading = false);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Exchange Requests'), backgroundColor: kGreen,
-//       actions: [
-//         IconButton(
-//   icon: const Icon(Icons.history), // 🕓 history icon
-//   tooltip: 'Exchange History',
-//   onPressed: () {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(builder: (_) => const ExchangeHistoryScreen()),
-//     );
-//   },
-// ),
-//       ],),
-//       body: _loading
-//           ? const Center(child: CircularProgressIndicator())
-//           : _proposals.isEmpty
-//               ? const Center(child: Text('No exchange proposals yet'))
-//               : RefreshIndicator(
-//                   onRefresh: _loadProposals,
-//                   child: ListView.builder(
-//                     itemCount: _proposals.length,
-//                     itemBuilder: (context, i) {
-//                       final p = _proposals[i];
-//                       final user = p['users'] ?? {};
-//                       final status = p['status'] ?? 'proposed';
-//                       return Card(
-//                         margin: const EdgeInsets.all(8),
-//                         child: ListTile(
-//                           leading: CircleAvatar(
-//                             backgroundImage: user['avatar_url'] != null
-//                                 ? NetworkImage(user['avatar_url'])
-//                                 : null,
-//                             child: user['avatar_url'] == null
-//                                 ? const Icon(Icons.person)
-//                                 : null,
-//                           ),
-//                           title: Text(user['display_name'] ?? 'Unknown'),
-//                           subtitle: Text('Status: $status'),
-//                           trailing: status == 'proposed'
-//                               ? Row(
-//                                   mainAxisSize: MainAxisSize.min,
-//                                   children: [
-//                                     IconButton(
-//                                       icon: const Icon(Icons.check, color: Colors.green),
-//                                       onPressed: () async {
-//                                         await ExchangeService.acceptProposal(p['id']);
-//                                         _loadProposals();
-//                                       },
-//                                     ),
-//                                     IconButton(
-//                                       icon: const Icon(Icons.close, color: Colors.red),
-//                                       onPressed: () async {
-//                                         await ExchangeService.rejectProposal(p['id']);
-//                                         _loadProposals();
-//                                       },
-//                                     ),
-//                                   ],
-//                                 )
-//                               : status == 'accepted'
-//                                   ? TextButton(
-//                                       onPressed: () async {
-//                                         await ExchangeService.markCompleted(p['id']);
-//                                         _loadProposals();
-//                                       },
-//                                       child: const Text('Mark Completed'),
-//                                     )
-//                                   : null,
-//                         ),
-//                       );
-//                     },
-//                   ),
-//                 ),
-//     );
-//   }
-// }
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../../services/exchange_service.dart';
-// import '../../utils/app_theme.dart';
+// import '../../models/exchange_model.dart';
+// import 'exchange_status_screen.dart';
 
 // class ExchangeRequestsScreen extends StatefulWidget {
 //   const ExchangeRequestsScreen({super.key});
@@ -230,13 +118,25 @@
 //         title: Text(
 //           isIncoming
 //               ? "$proposerName offered an exchange"
-//               : "You proposed to exchange with ${itemTitle}",
+//               : "You proposed to exchange with $itemTitle",
 //           style: const TextStyle(fontWeight: FontWeight.w500),
 //         ),
 //         subtitle: Text("Status: $status"),
 //         trailing: isIncoming
 //             ? _buildIncomingButtons(e)
 //             : _buildOutgoingButtons(e),
+
+//         /// 👇 New: open status screen when tapped
+//         onTap: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (_) => ExchangeStatusScreen(
+//                 exchange: Exchange.fromMap(e),
+//               ),
+//             ),
+//           );
+//         },
 //       ),
 //     );
 //   }
@@ -278,6 +178,7 @@
 //   }
 // }
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../services/exchange_service.dart';
 import '../../utils/app_theme.dart';
 import '../../models/exchange_model.dart';
@@ -287,7 +188,8 @@ class ExchangeRequestsScreen extends StatefulWidget {
   const ExchangeRequestsScreen({super.key});
 
   @override
-  State<ExchangeRequestsScreen> createState() => _ExchangeRequestsScreenState();
+  State<ExchangeRequestsScreen> createState() =>
+      _ExchangeRequestsScreenState();
 }
 
 class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
@@ -332,6 +234,21 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     _loadData();
   }
 
+  Future<void> _deleteExchange(String id) async {
+    try {
+      await ExchangeService.deleteExchange(id);
+      _showSnack('Exchange deleted successfully');
+      _loadData();
+    } catch (e) {
+      _showSnack('Failed to delete: $e');
+    }
+  }
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -349,19 +266,25 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
                   if (incoming.isNotEmpty)
                     const Padding(
                       padding: EdgeInsets.only(top: 10, bottom: 5),
-                      child: Text('📥 Incoming Proposals',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: Text(
+                        '📥 Incoming Proposals',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
                     ),
-                  ...incoming.map((ex) => _buildExchangeCard(ex, true)),
+                  ...incoming.map((ex) => _buildSlidableExchangeCard(ex, true)),
+
                   if (outgoing.isNotEmpty)
                     const Padding(
                       padding: EdgeInsets.only(top: 20, bottom: 5),
-                      child: Text('📤 Sent Proposals',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: Text(
+                        '📤 Sent Proposals',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
                     ),
-                  ...outgoing.map((ex) => _buildExchangeCard(ex, false)),
+                  ...outgoing.map((ex) => _buildSlidableExchangeCard(ex, false)),
+
                   if (incoming.isEmpty && outgoing.isEmpty)
                     const Center(
                       child: Padding(
@@ -375,7 +298,7 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     );
   }
 
-  Widget _buildExchangeCard(Map<String, dynamic> e, bool isIncoming) {
+  Widget _buildSlidableExchangeCard(Map<String, dynamic> e, bool isIncoming) {
     final status = e['status'] ?? 'unknown';
     final item = e['item'];
     final proposer = e['proposer'];
@@ -384,37 +307,52 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     final proposerName = proposer?['display_name'] ?? 'Unknown User';
     final proposerAvatar = proposer?['avatar_url'];
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage:
-              proposerAvatar != null ? NetworkImage(proposerAvatar) : null,
-          child: proposerAvatar == null ? const Icon(Icons.person) : null,
-        ),
-        title: Text(
-          isIncoming
-              ? "$proposerName offered an exchange"
-              : "You proposed to exchange with $itemTitle",
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text("Status: $status"),
-        trailing: isIncoming
-            ? _buildIncomingButtons(e)
-            : _buildOutgoingButtons(e),
-
-        /// 👇 New: open status screen when tapped
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ExchangeStatusScreen(
-                exchange: Exchange.fromMap(e),
+    return Slidable(
+      key: ValueKey(e['id']),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.25,
+        children: [
+          SlidableAction(
+            onPressed: (_) => _deleteExchange(e['id']),
+            backgroundColor: Colors.red,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage:
+                proposerAvatar != null ? NetworkImage(proposerAvatar) : null,
+            child: proposerAvatar == null
+                ? const Icon(Icons.person)
+                : null,
+          ),
+          title: Text(
+            isIncoming
+                ? "$proposerName offered an exchange"
+                : "You proposed to exchange with $itemTitle",
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text("Status: $status"),
+          trailing: isIncoming
+              ? _buildIncomingButtons(e)
+              : _buildOutgoingButtons(e),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ExchangeStatusScreen(
+                  exchange: Exchange.fromMap(e),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -451,7 +389,9 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     if (status == 'completed') {
       return const Icon(Icons.done_all, color: Colors.grey);
     }
-    return Text(status.toString(),
-        style: const TextStyle(color: Colors.grey, fontSize: 12));
+    return Text(
+      status.toString(),
+      style: const TextStyle(color: Colors.grey, fontSize: 12),
+    );
   }
 }

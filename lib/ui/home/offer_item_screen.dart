@@ -1,5 +1,6 @@
 
 import 'dart:typed_data';
+import 'package:circlo_app/ui/widgets/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -318,6 +319,7 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
           ],
         ),
       ),
+     
     );
   }
 }
