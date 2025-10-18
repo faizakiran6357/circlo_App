@@ -31,7 +31,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ItemsProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => ExchangeProvider()),
-          ChangeNotifierProvider(create: (_) => NavigtationProvider()),
+        ChangeNotifierProvider(create: (_) => NavigtationProvider()),
       ],
       child: const CircloApp(),
     ),

@@ -1,6 +1,5 @@
 
 import 'dart:typed_data';
-import 'package:circlo_app/ui/widgets/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,6 +33,10 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
   @override
   void initState() {
     super.initState();
+    _loadExistingItem();
+  }
+
+  void _loadExistingItem() {
     final item = widget.itemToEdit;
     if (item != null) {
       _titleCtrl.text = item.title;
@@ -44,6 +47,20 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
       selectedLocation = item.location;
       imagePreviewPath = item.imageUrl;
     }
+  }
+
+  /// ✅ Clears the form after posting a new listing
+  void _resetForm() {
+    setState(() {
+      _titleCtrl.clear();
+      _descCtrl.clear();
+      category = 'Electronics';
+      condition = 'good';
+      radiusKm = 10.0;
+      imageBytes = null;
+      imagePreviewPath = null;
+      selectedLocation = null;
+    });
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -61,31 +78,34 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _showSnack('Enable location services first');
-      return;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _showSnack('Location permission denied');
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showSnack('Enable location services first');
         return;
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      _showSnack('Location permanently denied, please enable in settings');
-      return;
-    }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showSnack('Location permission denied');
+          return;
+        }
+      }
 
-    final pos = await Geolocator.getCurrentPosition();
-    await _setLocationWithName(pos.latitude, pos.longitude);
+      if (permission == LocationPermission.deniedForever) {
+        _showSnack('Location permanently denied, please enable in settings');
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition();
+      await _setLocationWithName(pos.latitude, pos.longitude);
+    } catch (e) {
+      _showSnack('Location error: $e');
+    }
   }
 
-  /// 🔹 Updated reverse geocoding to include sub-locality, city, admin area, country
   Future<void> _setLocationWithName(double lat, double lng) async {
     String placeName = 'Unknown location';
     try {
@@ -103,6 +123,7 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
     setState(() {
       selectedLocation = {'lat': lat, 'lng': lng, 'name': placeName};
     });
+    debugPrint('✅ Location set: $placeName ($lat, $lng)');
   }
 
   String _coordLabel() {
@@ -130,10 +151,9 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
       final item = widget.itemToEdit;
       String? uploadedUrl = item?.imageUrl;
 
-      // Upload image if new selected
+      // Upload image if newly selected
       if (imageBytes != null) {
-        uploadedUrl =
-            await SupabaseItemService.uploadImageToStorage(bytes: imageBytes!);
+        uploadedUrl = await SupabaseItemService.uploadImageToStorage(bytes: imageBytes!);
       }
 
       if (item == null) {
@@ -145,9 +165,10 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
           radiusKm: radiusKm,
           imageUrl: uploadedUrl,
           trustScore: 0.0,
-          location: selectedLocation,
+          location: selectedLocation ?? {'lat': 0, 'lng': 0, 'name': 'Unknown'},
         );
         _showSnack('Item posted successfully');
+        _resetForm(); // ✅ clear after posting
       } else {
         await SupabaseItemService.updateItem(
           id: item.id,
@@ -157,14 +178,17 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
           condition: condition,
           radiusKm: radiusKm,
           imageUrl: uploadedUrl,
-          location: selectedLocation,
+          location: selectedLocation ?? item.location,
         );
         _showSnack('Item updated successfully');
       }
 
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      _showSnack('Failed: $e');
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      }
+    } catch (e, st) {
+      debugPrint('❌ Error posting item: $e\n$st');
+      _showSnack('Something went wrong while posting');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -179,7 +203,14 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ['Electronics', 'Furniture', 'Clothes', 'Books', 'Sports', 'Other'];
+    final categories = [
+      'Electronics',
+      'Furniture',
+      'Clothes',
+      'Books',
+      'Sports',
+      'Other'
+    ];
     final conditions = ['new', 'good', 'used', 'old'];
 
     return Scaffold(
@@ -244,7 +275,10 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
+            TextField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(labelText: 'Title'),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _descCtrl,
@@ -292,13 +326,16 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
             ElevatedButton.icon(
               icon: const Icon(Icons.location_on),
               label: Text(_coordLabel()),
-              style: ElevatedButton.styleFrom(backgroundColor: kTeal, minimumSize: const Size(double.infinity, 45)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kTeal,
+                minimumSize: const Size(double.infinity, 45),
+              ),
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LocationPickerScreen()),
                 );
-                if (result != null && result is Map) {
+                if (result != null && result is Map && mounted) {
                   await _setLocationWithName(result['lat'], result['lng']);
                 }
               },
@@ -310,7 +347,10 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
             ),
             const SizedBox(height: 18),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: kGreen, minimumSize: const Size(double.infinity, 50)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kGreen,
+                minimumSize: const Size(double.infinity, 50),
+              ),
               onPressed: isLoading ? null : _submit,
               child: isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
@@ -319,7 +359,6 @@ class _OfferItemScreenState extends State<OfferItemScreen> {
           ],
         ),
       ),
-     
     );
   }
 }

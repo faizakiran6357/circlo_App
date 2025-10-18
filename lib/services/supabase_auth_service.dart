@@ -196,5 +196,6 @@ class SupabaseAuthService {
       debugPrint("❌ User sync failed: $e");
     }
   }
+
 }
  
