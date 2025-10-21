@@ -49,6 +49,11 @@ dependencies:
   path_provider: ^2.1.5
   lucide_icons: ^0.257.0
   clustering_google_maps: ^0.1.2-nullsafety.3
+  googleapis_auth: ^2.0.0
+  firebase_core: ^4.2.0
+  firebase_messaging: ^16.0.3
+  flutter_local_notifications: ^19.5.0
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:

@@ -154,6 +154,7 @@
 import 'package:circlo_app/services/supabase_item_service.dart';
 import 'package:circlo_app/ui/home/offer_item_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../models/item_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -197,35 +198,73 @@ class ItemsProvider extends ChangeNotifier {
   // --------------------------------------------------------
   // 🔁 Load Nearby Items (paginated)
   // --------------------------------------------------------
-  Future<void> loadNearby({bool reset = false}) async {
-    if (reset) {
-      nearbyPage = 1;
-      _nearbyItems = [];
-      hasMoreNearby = true;
-    }
-    if (!hasMoreNearby) return;
+  // Future<void> loadNearby({bool reset = false}) async {
+  //   if (reset) {
+  //     nearbyPage = 1;
+  //     _nearbyItems = [];
+  //     hasMoreNearby = true;
+  //   }
+  //   if (!hasMoreNearby) return;
 
-    try {
-      loadingNearby = true;
-      notifyListeners();
+  //   try {
+  //     loadingNearby = true;
+  //     notifyListeners();
 
-      final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
-        _selectedRadius,
-        page: nearbyPage,
-        limit: pageLimit,
-      );
+  //     final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
+  //       _selectedRadius,
+  //       page: nearbyPage,
+  //       limit: pageLimit,
+  //     );
 
-      if (fetchedItems.length < pageLimit) hasMoreNearby = false;
+  //     if (fetchedItems.length < pageLimit) hasMoreNearby = false;
 
-      _nearbyItems.addAll(fetchedItems);
-      nearbyPage++;
-    } catch (e) {
-      debugPrint("❌ Error loading nearby items: $e");
-    } finally {
-      loadingNearby = false;
-      notifyListeners();
-    }
+  //     _nearbyItems.addAll(fetchedItems);
+  //     nearbyPage++;
+  //   } catch (e) {
+  //     debugPrint("❌ Error loading nearby items: $e");
+  //   } finally {
+  //     loadingNearby = false;
+  //     notifyListeners();
+  //   }
+  // }
+
+Future<void> loadNearby({bool reset = false}) async {
+  if (reset) {
+    nearbyPage = 1;
+    _nearbyItems = [];
+    hasMoreNearby = true;
   }
+  if (!hasMoreNearby) return;
+
+  try {
+    loadingNearby = true;
+    notifyListeners();
+
+    final position = await Geolocator.getCurrentPosition(); // ✅ get user location
+
+    final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
+      userLat: position.latitude,
+      userLng: position.longitude,
+      maxRadiusKm: _selectedRadius,
+      page: nearbyPage,
+      limit: pageLimit,
+    );
+
+    if (fetchedItems.length < pageLimit) hasMoreNearby = false;
+
+    // ✅ Remove duplicates and add new ones to the top
+    final ids = _nearbyItems.map((e) => e.id).toSet();
+    final newItems = fetchedItems.where((e) => !ids.contains(e.id)).toList();
+
+    _nearbyItems.insertAll(0, newItems);
+    nearbyPage++;
+  } catch (e) {
+    debugPrint("❌ Error loading nearby items: $e");
+  } finally {
+    loadingNearby = false;
+    notifyListeners();
+  }
+}
 
   // --------------------------------------------------------
   // 🔁 Load Trending Items (paginated)

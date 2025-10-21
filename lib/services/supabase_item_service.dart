@@ -254,7 +254,8 @@
 //   }
 
 // }
- import 'dart:typed_data';
+ import 'dart:math';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/item_model.dart';
@@ -296,17 +297,48 @@ class SupabaseItemService {
   }
 
   // 🟢 Fetch Nearby Items Paginated
-  static Future<List<Item>> fetchNearbyItemsPaginated(double maxRadiusKm, {int page = 1, int limit = 7}) async {
-    final from = (page - 1) * limit;
-    final to = from + limit - 1;
-    final res = await supabase
-        .from('items')
-        .select()
-        .lte('radius_km', maxRadiusKm)
-        .order('created_at', ascending: false)
-        .range(from, to);
-    return _mapListToItems(res);
-  }
+  // static Future<List<Item>> fetchNearbyItemsPaginated(double maxRadiusKm, {int page = 1, int limit = 7}) async {
+  //   final from = (page - 1) * limit;
+  //   final to = from + limit - 1;
+  //   final res = await supabase
+  //       .from('items')
+  //       .select()
+  //       .lte('radius_km', maxRadiusKm)
+  //       .order('created_at', ascending: false)
+  //       .range(from, to);
+  //   return _mapListToItems(res);
+  // }
+static Future<List<Item>> fetchNearbyItemsPaginated({
+  required double userLat,
+  required double userLng,
+  required double maxRadiusKm,
+  int page = 1,
+  int limit = 7,
+}) async {
+  final from = (page - 1) * limit;
+  final to = from + limit - 1;
+
+  final res = await supabase
+      .from('items')
+      .select()
+      .order('created_at', ascending: false)
+      .range(from, to);
+
+  // ✅ Await the mapping
+  final items = await _mapListToItems(res);
+
+  // ✅ Filter items by actual distance
+  return items.where((item) {
+    final loc = item.location;
+    if (loc == null) return false;
+    final lat = (loc['lat'] ?? 0).toDouble();
+    final lng = (loc['lng'] ?? 0).toDouble();
+    final distance = _calculateDistanceKm(userLat, userLng, lat, lng);
+    return distance <= maxRadiusKm;
+  }).toList();
+}
+
+
 
   // ----------------------------------------------------------
   // 🟢 Fetch Friend Items
@@ -571,4 +603,19 @@ class SupabaseItemService {
       rethrow;
     }
   }
+  // ✅ Helper: Calculate distance (Haversine formula)
+static double _calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
+  const earthRadius = 6371.0; // km
+  final dLat = _degToRad(lat2 - lat1);
+  final dLon = _degToRad(lon2 - lon1);
+  final a = 
+      (sin(dLat / 2) * sin(dLat / 2)) +
+      cos(_degToRad(lat1)) * cos(_degToRad(lat2)) *
+      (sin(dLon / 2) * sin(dLon / 2));
+  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return earthRadius * c;
+}
+
+static double _degToRad(double deg) => deg * (pi / 180);
+
 }
