@@ -1,156 +1,4 @@
 
-// import 'package:circlo_app/services/supabase_item_service.dart';
-// import 'package:circlo_app/ui/home/offer_item_screen.dart';
-// import 'package:flutter/material.dart';
-// import '../models/item_model.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
-
-// class ItemsProvider extends ChangeNotifier {
-//   // 🧠 Core Lists
-//   List<Item> _nearbyItems = [];
-//   List<Item> _trendingItems = [];
-//   List<Item> _friendItems = [];
-
-//   // 🧠 Loading states
-//   bool loadingNearby = false;
-//   bool loadingTrending = false;
-//   bool loadingFriends = false;
-
-//   // 🧠 Radius & Filters
-//   double _selectedRadius = 30; // default 30 km
-//   Map<String, dynamic> appliedFilters = {};
-
-//   // 🧠 Getters
-//   List<Item> get nearbyItems => _nearbyItems;
-//   List<Item> get trendingItems => _trendingItems;
-//   List<Item> get friendItems => _friendItems;
-//   double get selectedRadius => _selectedRadius;
-
-//   // 🧩 Set selected radius
-//   void setSelectedRadius(double radius) {
-//     _selectedRadius = radius;
-//     notifyListeners();
-//   }
-
-//   // 🔁 Load Nearby Items
-//   Future<void> loadNearby() async {
-//     try {
-//       loadingNearby = true;
-//       notifyListeners();
-
-//       final fetchedItems =
-//           await SupabaseItemService.fetchNearbyItems(_selectedRadius);
-//       _nearbyItems = fetchedItems;
-//     } catch (e) {
-//       debugPrint("❌ Error loading nearby items: $e");
-//     } finally {
-//       loadingNearby = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   // 🔁 Load Trending Items
-//   Future<void> loadTrending() async {
-//     try {
-//       loadingTrending = true;
-//       notifyListeners();
-
-//       final fetchedItems = await SupabaseItemService.fetchTrendingItems();
-//       _trendingItems = fetchedItems;
-//     } catch (e) {
-//       debugPrint("❌ Error loading trending items: $e");
-//     } finally {
-//       loadingTrending = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   // 🔁 Load Friend Items (Updated)
-//   Future<void> loadFriends() async {
-//     try {
-//       loadingFriends = true;
-//       notifyListeners();
-
-//       final user = Supabase.instance.client.auth.currentUser;
-//       if (user == null) {
-//         debugPrint("⚠️ No logged-in user — cannot load friend posts");
-//         _friendItems = [];
-//         return;
-//       }
-
-//       final fetchedItems = await SupabaseItemService.fetchFriendItems();
-
-//       if (fetchedItems.isEmpty) {
-//         debugPrint("ℹ️ No posts found from friends yet.");
-//       } else {
-//         debugPrint("✅ Loaded ${fetchedItems.length} posts from friends.");
-//       }
-
-//       _friendItems = fetchedItems;
-//     } catch (e) {
-//       debugPrint("❌ Error loading friend items: $e");
-//       _friendItems = [];
-//     } finally {
-//       loadingFriends = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   // 🎯 Apply filters
-//   void applyFilters(Map<String, dynamic> filters) {
-//     appliedFilters = filters;
-//     notifyListeners();
-//   }
-
-//   // 🔁 Refresh current tab manually
-//   Future<void> refreshCurrent(int tabIndex) async {
-//     switch (tabIndex) {
-//       case 0:
-//         await loadNearby();
-//         break;
-//       case 1:
-//         await loadFriends();
-//         break;
-//       case 2:
-//         await loadTrending();
-//         break;
-//       default:
-//         break;
-//     }
-//   }
-
-//   // 🗑️ Delete Item
-//   Future<void> deleteItem(String id) async {
-//     try {
-//       await SupabaseItemService.deleteItem(id);
-//       _nearbyItems.removeWhere((item) => item.id == id);
-//       _trendingItems.removeWhere((item) => item.id == id);
-//       _friendItems.removeWhere((item) => item.id == id);
-//       notifyListeners();
-//     } catch (e) {
-//       debugPrint('❌ Delete error: $e');
-//     }
-//   }
-
-//   // 🖊️ Edit Item
-//   Future<bool?> editItem(BuildContext context, Item item) async {
-//     final result = await Navigator.push<bool>(
-//       context,
-//       MaterialPageRoute(
-//         builder: (_) => OfferItemScreen(itemToEdit: item),
-//       ),
-//     );
-//     return result; // true if updated, null otherwise
-//   }
-//   Future<void> refreshAll() async {
-//   await Future.wait([
-//     loadNearby(),
-//     loadFriends(),
-//     loadTrending(),
-//   ]);
-// }
-
-// }
 import 'package:circlo_app/services/supabase_item_service.dart';
 import 'package:circlo_app/ui/home/offer_item_screen.dart';
 import 'package:flutter/material.dart';
@@ -189,85 +37,58 @@ class ItemsProvider extends ChangeNotifier {
   List<Item> get friendItems => _friendItems;
   double get selectedRadius => _selectedRadius;
 
-  // 🧩 Set selected radius
+  // 🧩 Set selected radius (safe call)
   void setSelectedRadius(double radius) {
     _selectedRadius = radius;
-    notifyListeners();
+
+    // ✅ Avoid notifying during widget build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // --------------------------------------------------------
-  // 🔁 Load Nearby Items (paginated)
+  // 🗺️ Load Nearby Items (paginated)
   // --------------------------------------------------------
-  // Future<void> loadNearby({bool reset = false}) async {
-  //   if (reset) {
-  //     nearbyPage = 1;
-  //     _nearbyItems = [];
-  //     hasMoreNearby = true;
-  //   }
-  //   if (!hasMoreNearby) return;
+  Future<void> loadNearby({bool reset = false}) async {
+    if (reset) {
+      nearbyPage = 1;
+      _nearbyItems = [];
+      hasMoreNearby = true;
+    }
+    if (!hasMoreNearby) return;
 
-  //   try {
-  //     loadingNearby = true;
-  //     notifyListeners();
+    try {
+      loadingNearby = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
 
-  //     final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
-  //       _selectedRadius,
-  //       page: nearbyPage,
-  //       limit: pageLimit,
-  //     );
+      final position = await Geolocator.getCurrentPosition();
 
-  //     if (fetchedItems.length < pageLimit) hasMoreNearby = false;
+      final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
+        userLat: position.latitude,
+        userLng: position.longitude,
+        maxRadiusKm: _selectedRadius,
+        page: nearbyPage,
+        limit: pageLimit,
+      );
 
-  //     _nearbyItems.addAll(fetchedItems);
-  //     nearbyPage++;
-  //   } catch (e) {
-  //     debugPrint("❌ Error loading nearby items: $e");
-  //   } finally {
-  //     loadingNearby = false;
-  //     notifyListeners();
-  //   }
-  // }
+      if (fetchedItems.length < pageLimit) hasMoreNearby = false;
 
-Future<void> loadNearby({bool reset = false}) async {
-  if (reset) {
-    nearbyPage = 1;
-    _nearbyItems = [];
-    hasMoreNearby = true;
+      final ids = _nearbyItems.map((e) => e.id).toSet();
+      final newItems = fetchedItems.where((e) => !ids.contains(e.id)).toList();
+
+      _nearbyItems.insertAll(0, newItems);
+      nearbyPage++;
+    } catch (e) {
+      debugPrint("❌ Error loading nearby items: $e");
+    } finally {
+      loadingNearby = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
+    }
   }
-  if (!hasMoreNearby) return;
-
-  try {
-    loadingNearby = true;
-    notifyListeners();
-
-    final position = await Geolocator.getCurrentPosition(); // ✅ get user location
-
-    final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
-      userLat: position.latitude,
-      userLng: position.longitude,
-      maxRadiusKm: _selectedRadius,
-      page: nearbyPage,
-      limit: pageLimit,
-    );
-
-    if (fetchedItems.length < pageLimit) hasMoreNearby = false;
-
-    // ✅ Remove duplicates and add new ones to the top
-    final ids = _nearbyItems.map((e) => e.id).toSet();
-    final newItems = fetchedItems.where((e) => !ids.contains(e.id)).toList();
-
-    _nearbyItems.insertAll(0, newItems);
-    nearbyPage++;
-  } catch (e) {
-    debugPrint("❌ Error loading nearby items: $e");
-  } finally {
-    loadingNearby = false;
-    notifyListeners();
-  }
-}
 
   // --------------------------------------------------------
-  // 🔁 Load Trending Items (paginated)
+  // 🔁 Load Trending Items
   // --------------------------------------------------------
   Future<void> loadTrending({bool reset = false}) async {
     if (reset) {
@@ -279,7 +100,7 @@ Future<void> loadNearby({bool reset = false}) async {
 
     try {
       loadingTrending = true;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
 
       final fetchedItems = await SupabaseItemService.fetchTrendingItemsPaginated(
         page: trendingPage,
@@ -294,12 +115,12 @@ Future<void> loadNearby({bool reset = false}) async {
       debugPrint("❌ Error loading trending items: $e");
     } finally {
       loadingTrending = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     }
   }
 
   // --------------------------------------------------------
-  // 🔁 Load Friend Items (paginated)
+  // 🔁 Load Friend Items
   // --------------------------------------------------------
   Future<void> loadFriends({bool reset = false}) async {
     if (reset) {
@@ -311,7 +132,7 @@ Future<void> loadNearby({bool reset = false}) async {
 
     try {
       loadingFriends = true;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
 
       final fetchedItems = await SupabaseItemService.fetchFriendItemsPaginated(
         page: friendsPage,
@@ -326,7 +147,7 @@ Future<void> loadNearby({bool reset = false}) async {
       debugPrint("❌ Error loading friend items: $e");
     } finally {
       loadingFriends = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     }
   }
 
@@ -335,7 +156,7 @@ Future<void> loadNearby({bool reset = false}) async {
   // --------------------------------------------------------
   void applyFilters(Map<String, dynamic> filters) {
     appliedFilters = filters;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
   }
 
   // --------------------------------------------------------
@@ -366,7 +187,8 @@ Future<void> loadNearby({bool reset = false}) async {
       _nearbyItems.removeWhere((item) => item.id == id);
       _trendingItems.removeWhere((item) => item.id == id);
       _friendItems.removeWhere((item) => item.id == id);
-      notifyListeners();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     } catch (e) {
       debugPrint('❌ Delete error: $e');
     }
@@ -382,7 +204,7 @@ Future<void> loadNearby({bool reset = false}) async {
         builder: (_) => OfferItemScreen(itemToEdit: item),
       ),
     );
-    return result; // true if updated, null otherwise
+    return result;
   }
 
   // --------------------------------------------------------

@@ -1,4 +1,5 @@
 
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/exchange_model.dart';
 
@@ -17,7 +18,8 @@ class ExchangeService {
     await supabase.from('exchanges').insert({
       'item_id': itemId,
       'proposer_id': user.id,
-      'offered_item_ids': offeredItemIds,
+      // Store as JSON (safe for text or jsonb column)
+      'offered_item_ids': jsonEncode(offeredItemIds),
       'status': 'proposed',
       'meetup_location': meetupLocation,
       'created_at': DateTime.now().toIso8601String(),
@@ -51,12 +53,10 @@ class ExchangeService {
   // 🟢 Fetch all exchanges related to current user (as proposer or owner)
   // ------------------------------------------------------------------
   static Future<List<Exchange>> fetchUserExchanges(String userId) async {
-    // 1️⃣ Get item IDs owned by this user
     final itemsRes =
         await supabase.from('items').select('id').eq('user_id', userId);
     final itemIds = (itemsRes as List).map((e) => e['id'].toString()).toList();
 
-    // 2️⃣ Fetch exchanges where user is proposer OR owns the item
     final res = await supabase
         .from('exchanges')
         .select(
@@ -65,9 +65,17 @@ class ExchangeService {
             'proposer_id.eq.$userId,item_id.in.(${itemIds.map((id) => "'$id'").join(",")})')
         .order('created_at', ascending: false);
 
-    return (res as List)
-        .map((e) => Exchange.fromMap(Map<String, dynamic>.from(e)))
-        .toList();
+    return (res as List).map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['offered_item_ids'] is String) {
+        try {
+          map['offered_item_ids'] = jsonDecode(map['offered_item_ids']);
+        } catch (_) {
+          map['offered_item_ids'] = [];
+        }
+      }
+      return Exchange.fromMap(map);
+    }).toList();
   }
 
   // ------------------------------------------------------------------
@@ -77,7 +85,6 @@ class ExchangeService {
     final user = supabase.auth.currentUser;
     if (user == null) return [];
 
-    // My item IDs
     final myItemsRes =
         await supabase.from('items').select('id').eq('user_id', user.id);
     final itemIds =
@@ -92,7 +99,17 @@ class ExchangeService {
         .inFilter('item_id', itemIds)
         .order('created_at', ascending: false);
 
-    return (res as List).map((e) => Map<String, dynamic>.from(e)).toList();
+    return (res as List).map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['offered_item_ids'] is String) {
+        try {
+          map['offered_item_ids'] = jsonDecode(map['offered_item_ids']);
+        } catch (_) {
+          map['offered_item_ids'] = [];
+        }
+      }
+      return map;
+    }).toList();
   }
 
   // ------------------------------------------------------------------
@@ -109,7 +126,17 @@ class ExchangeService {
         .eq('proposer_id', user.id)
         .order('created_at', ascending: false);
 
-    return (res as List).map((e) => Map<String, dynamic>.from(e)).toList();
+    return (res as List).map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['offered_item_ids'] is String) {
+        try {
+          map['offered_item_ids'] = jsonDecode(map['offered_item_ids']);
+        } catch (_) {
+          map['offered_item_ids'] = [];
+        }
+      }
+      return map;
+    }).toList();
   }
 
   // ------------------------------------------------------------------
@@ -127,10 +154,20 @@ class ExchangeService {
         .or('proposer_id.eq.${user.id},item.user_id.eq.${user.id}')
         .order('created_at', ascending: false);
 
-    return (res as List).map((e) => Map<String, dynamic>.from(e)).toList();
+    return (res as List).map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['offered_item_ids'] is String) {
+        try {
+          map['offered_item_ids'] = jsonDecode(map['offered_item_ids']);
+        } catch (_) {
+          map['offered_item_ids'] = [];
+        }
+      }
+      return map;
+    }).toList();
   }
-  static Future<void> deleteExchange(String id) async {
-  await supabase.from('exchanges').delete().eq('id', id);
-}
 
+  static Future<void> deleteExchange(String id) async {
+    await supabase.from('exchanges').delete().eq('id', id);
+  }
 }
