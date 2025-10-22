@@ -198,35 +198,6 @@ class ItemsProvider extends ChangeNotifier {
   // --------------------------------------------------------
   // 🔁 Load Nearby Items (paginated)
   // --------------------------------------------------------
-  // Future<void> loadNearby({bool reset = false}) async {
-  //   if (reset) {
-  //     nearbyPage = 1;
-  //     _nearbyItems = [];
-  //     hasMoreNearby = true;
-  //   }
-  //   if (!hasMoreNearby) return;
-
-  //   try {
-  //     loadingNearby = true;
-  //     notifyListeners();
-
-  //     final fetchedItems = await SupabaseItemService.fetchNearbyItemsPaginated(
-  //       _selectedRadius,
-  //       page: nearbyPage,
-  //       limit: pageLimit,
-  //     );
-
-  //     if (fetchedItems.length < pageLimit) hasMoreNearby = false;
-
-  //     _nearbyItems.addAll(fetchedItems);
-  //     nearbyPage++;
-  //   } catch (e) {
-  //     debugPrint("❌ Error loading nearby items: $e");
-  //   } finally {
-  //     loadingNearby = false;
-  //     notifyListeners();
-  //   }
-  // }
 
 Future<void> loadNearby({bool reset = false}) async {
   if (reset) {

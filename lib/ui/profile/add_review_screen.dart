@@ -3,8 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../utils/app_theme.dart';
 
 class AddReviewScreen extends StatefulWidget {
-  final String targetUserId; // User receiving the review
-  final String exchangeId;   // (kept for navigation consistency, not used in DB)
+  final String targetUserId; 
+  final String exchangeId;   
 
   const AddReviewScreen({
     super.key,

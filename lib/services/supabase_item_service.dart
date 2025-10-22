@@ -296,18 +296,7 @@ class SupabaseItemService {
     return _mapListToItems(res);
   }
 
-  // 🟢 Fetch Nearby Items Paginated
-  // static Future<List<Item>> fetchNearbyItemsPaginated(double maxRadiusKm, {int page = 1, int limit = 7}) async {
-  //   final from = (page - 1) * limit;
-  //   final to = from + limit - 1;
-  //   final res = await supabase
-  //       .from('items')
-  //       .select()
-  //       .lte('radius_km', maxRadiusKm)
-  //       .order('created_at', ascending: false)
-  //       .range(from, to);
-  //   return _mapListToItems(res);
-  // }
+
 static Future<List<Item>> fetchNearbyItemsPaginated({
   required double userLat,
   required double userLng,

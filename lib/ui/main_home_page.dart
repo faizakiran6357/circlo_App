@@ -17,7 +17,7 @@ class MainHomePage extends StatefulWidget {
 }
 
 class _MainHomePageState extends State<MainHomePage> {
-  /// ✅ Screens controlled by bottom navigation
+  ///  Screens controlled by bottom navigation
   final List<Widget> _screens = const [
     HomeFeedScreen(),       // Home Feed (default)
     SearchScreen(),         // Search
@@ -26,12 +26,12 @@ class _MainHomePageState extends State<MainHomePage> {
     ProfileOverviewScreen() // Profile
   ];
 
-  /// ✅ When user taps on a bottom icon
+  ///  When user taps on a bottom icon
   void _onItemTapped(int index) {
     context.read<NavigtationProvider>().updateIndex(index);
   }
 
-  /// ✅ When user taps on the floating + button
+  ///  When user taps on the floating + button
   void _onFabPressed() {
     context.read<NavigtationProvider>().updateIndex(2); // Offer Item
   }
