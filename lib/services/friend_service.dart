@@ -34,47 +34,6 @@ class FriendService {
       'status': 'pending',
     });
   }
-
-  /// 🟢 Accept friend request
-  // static Future<void> acceptFriendRequest(String requestId, String fromUserId) async {
-  //   final currentUserId = supabase.auth.currentUser?.id;
-  //   if (currentUserId == null) throw Exception("User not logged in");
-  //   if (requestId.isEmpty || fromUserId.isEmpty) throw Exception("Invalid requestId or fromUserId");
-
-  //   // Ensure the request exists before updating
-  //   final existingRequest = await supabase
-  //       .from('friends')
-  //       .select()
-  //       .eq('id', requestId)
-  //       .maybeSingle();
-
-  //   if (existingRequest == null) {
-  //     throw Exception("Friend request not found");
-  //   }
-
-  //   // Update existing request to accepted
-  //   await supabase
-  //       .from('friends')
-  //       .update({'status': 'accepted'})
-  //       .eq('id', requestId);
-
-  //   // Insert reciprocal record if it doesn't exist
-  //   final reciprocal = await supabase
-  //       .from('friends')
-  //       .select()
-  //       .eq('user_id', currentUserId)
-  //       .eq('friend_id', fromUserId)
-  //       .maybeSingle();
-
-  //   if (reciprocal == null) {
-  //     await supabase.from('friends').insert({
-  //       'user_id': currentUserId,
-  //       'friend_id': fromUserId,
-  //       'status': 'accepted',
-  //     });
-  //   }
-  // }
-  /// 🟢 Accept friend request (reliable)
 /// 🟢 Accept friend request (fully reliable)
 static Future<void> acceptFriendRequest(String requestId, String fromUserId) async {
   final currentUserId = supabase.auth.currentUser?.id;

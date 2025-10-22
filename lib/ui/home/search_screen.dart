@@ -4,7 +4,7 @@
 // import 'package:supabase_flutter/supabase_flutter.dart';
 // import '../../utils/app_theme.dart';
 // import '../item_detail/item_detail_screen.dart';
-// import '../home/filter_bottom_sheet.dart'; // ✅ import for filter sheet
+// import '../home/filter_bottom_sheet.dart';
 
 // class SearchScreen extends StatefulWidget {
 //   const SearchScreen({super.key});
@@ -20,45 +20,94 @@
 //   List<Item> allItems = [];
 //   List<Item> displayedItems = [];
 //   bool loading = true;
-//   Map<String, dynamic> appliedFilters = {}; // ✅ keep track of applied filters
+//   bool loadingMore = false;
+//   bool hasMore = true;
+//   int currentPage = 1;
+//   final int limit = 7;
+//   Map<String, dynamic> appliedFilters = {};
+
+//   final ScrollController _scrollController = ScrollController();
 
 //   @override
 //   void initState() {
 //     super.initState();
-//     _loadAllItems();
+//     _loadItems(reset: true);
+//     _scrollController.addListener(_scrollListener);
 //   }
 
-//   /// 🔹 Load all items from Supabase
-//   Future<void> _loadAllItems() async {
-//     setState(() => loading = true);
+//   @override
+//   void dispose() {
+//     _scrollController.dispose();
+//     super.dispose();
+//   }
+
+//   void _scrollListener() {
+//     if (_scrollController.position.pixels >=
+//             _scrollController.position.maxScrollExtent - 200 &&
+//         hasMore &&
+//         !loadingMore &&
+//         !loading) {
+//       _loadItems();
+//     }
+//   }
+
+//   /// 🔹 Load items from Supabase with pagination
+//   Future<void> _loadItems({bool reset = false}) async {
+//     if (reset) {
+//       setState(() {
+//         loading = true;
+//         currentPage = 1;
+//         hasMore = true;
+//         allItems = [];
+//       });
+//     } else {
+//       setState(() => loadingMore = true);
+//     }
+
 //     try {
-//       final response = await supabase.from('items').select();
+//       final from = (currentPage - 1) * limit;
+//       final to = from + limit - 1;
+
+//       final response = await supabase
+//           .from('items')
+//           .select()
+//           .range(from, to)
+//           .order('created_at', ascending: false);
+
 //       final List<Map<String, dynamic>> itemMaps =
 //           List<Map<String, dynamic>>.from(response);
 
+//       final newItems = itemMaps.map((m) => Item.fromMap(m)).toList();
+
 //       setState(() {
-//         allItems = itemMaps.map((m) => Item.fromMap(m)).toList();
-//         displayedItems = allItems;
+//         allItems.addAll(newItems);
+//         displayedItems = _applySearchFilter(searchController.text, allItems);
+//         hasMore = newItems.length == limit;
+//         currentPage++;
 //         loading = false;
+//         loadingMore = false;
 //       });
 //     } catch (e) {
 //       debugPrint('Error loading items: $e');
-//       setState(() => loading = false);
+//       setState(() {
+//         loading = false;
+//         loadingMore = false;
+//       });
 //     }
 //   }
 
-//   /// 🔹 Search by item title
+//   List<Item> _applySearchFilter(String query, List<Item> items) {
+//     if (query.isEmpty) return items;
+//     return items
+//         .where((item) => item.title.toLowerCase().contains(query.toLowerCase()))
+//         .toList();
+//   }
+
+//   /// 🔹 Search handler
 //   void _searchItems(String query) {
-//     if (query.isEmpty) {
-//       setState(() => displayedItems = allItems);
-//     } else {
-//       setState(() {
-//         displayedItems = allItems
-//             .where((item) =>
-//                 item.title.toLowerCase().contains(query.toLowerCase()))
-//             .toList();
-//       });
-//     }
+//     setState(() {
+//       displayedItems = _applySearchFilter(query, allItems);
+//     });
 //   }
 
 //   /// 🔹 Open Filter Bottom Sheet
@@ -75,19 +124,11 @@
 //           Navigator.pop(context);
 //           setState(() {
 //             appliedFilters = filters;
-//             _applyFilters();
+//             _loadItems(reset: true); // reload items with filters applied
 //           });
 //         },
 //       ),
 //     );
-//   }
-
-//   /// 🔹 Apply selected filters (basic placeholder logic)
-//   void _applyFilters() {
-//     // Here you can implement filter logic based on your filter fields
-//     // Example: filter by category or tag
-//     // For now, we just log them
-//     debugPrint("✅ Applied Filters: $appliedFilters");
 //   }
 
 //   @override
@@ -101,7 +142,7 @@
 //         actions: [
 //           IconButton(
 //             icon: const Icon(Icons.filter_alt_rounded, color: Colors.white),
-//             onPressed: _openFilters, // ✅ open filter bottom sheet
+//             onPressed: _openFilters,
 //           ),
 //         ],
 //       ),
@@ -130,13 +171,21 @@
 
 //           /// 🔹 Search Results
 //           Expanded(
-//             child: loading
+//             child: loading && allItems.isEmpty
 //                 ? const Center(child: CircularProgressIndicator())
 //                 : displayedItems.isEmpty
 //                     ? const Center(child: Text('No items found.'))
 //                     : ListView.builder(
-//                         itemCount: displayedItems.length,
+//                         controller: _scrollController,
+//                         itemCount: displayedItems.length + (loadingMore ? 1 : 0),
 //                         itemBuilder: (context, index) {
+//                           if (index >= displayedItems.length) {
+//                             return const Padding(
+//                               padding: EdgeInsets.symmetric(vertical: 20),
+//                               child: Center(child: CircularProgressIndicator()),
+//                             );
+//                           }
+
 //                           final item = displayedItems[index];
 //                           return Card(
 //                             color: Colors.white,
@@ -246,7 +295,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  /// 🔹 Load items from Supabase with pagination
   Future<void> _loadItems({bool reset = false}) async {
     if (reset) {
       setState(() {
@@ -298,14 +346,12 @@ class _SearchScreenState extends State<SearchScreen> {
         .toList();
   }
 
-  /// 🔹 Search handler
   void _searchItems(String query) {
     setState(() {
       displayedItems = _applySearchFilter(query, allItems);
     });
   }
 
-  /// 🔹 Open Filter Bottom Sheet
   void _openFilters() {
     showModalBottomSheet(
       context: context,
@@ -319,7 +365,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Navigator.pop(context);
           setState(() {
             appliedFilters = filters;
-            _loadItems(reset: true); // reload items with filters applied
+            _loadItems(reset: true);
           });
         },
       ),
@@ -343,7 +389,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Column(
         children: [
-          /// 🔍 Search Bar
+          // 🔍 Search Bar
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -364,7 +410,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
-          /// 🔹 Search Results
+          // 🔹 Search Results
           Expanded(
             child: loading && allItems.isEmpty
                 ? const Center(child: CircularProgressIndicator())
@@ -383,7 +429,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                           final item = displayedItems[index];
                           return Card(
-                            color: Colors.white,
+                            color: Colors.white, // ✅ Card color changed to white
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             shape: RoundedRectangleBorder(
