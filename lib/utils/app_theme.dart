@@ -9,7 +9,7 @@ ThemeData circloTheme = ThemeData(
   fontFamily: 'Nunito',
   scaffoldBackgroundColor: kBg,
   primaryColor: kGreen,
-  colorScheme: ColorScheme.fromSeed(seedColor: kGreen),
+  colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 23, 45, 24)),
   textTheme: const TextTheme(
     titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kTextDark),
     bodyMedium: TextStyle(fontSize: 14, color: kTextDark),
