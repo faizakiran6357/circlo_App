@@ -1,122 +1,147 @@
+
+import 'package:circlo_app/providers/exchange_provider.dart';
+import 'package:circlo_app/providers/navigtation_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'utils/app_theme.dart';
+import 'providers/auth_provider.dart';
+import 'providers/items_provider.dart';
+import 'providers/chat_provider.dart';
+import 'ui/auth/splash_screen.dart';
+import 'services/notification_service.dart';
 
-void main() {
-  runApp(const MyApp());
+/// Background FCM handler
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handling a background message: ${message.messageId}');
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // This widget is the root of your application.
+  // 1️⃣ Firebase
+  await Firebase.initializeApp();
+
+  // 2️⃣ Supabase
+  await Supabase.initialize(
+    url: 'https://rvsklnveacozabkgfptu.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2c2tsbnZlYWNvemFia2dmcHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNDA4MDQsImV4cCI6MjA3NTYxNjgwNH0.tpARsyhulLxzECEbNjWbYch-nidBgvnQpYxMVwt1sRw',
+  );
+
+  // 3️⃣ Local + FCM notifications
+  await NotificationService.init();
+
+  // 4️⃣ Background FCM handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 5️⃣ Run the app
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()..initFcmTokenListener()),
+        ChangeNotifierProvider(create: (_) => ItemsProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => ExchangeProvider()),
+        ChangeNotifierProvider(create: (_) => NavigtationProvider()),
+      ],
+      child: const CircloApp(),
+    ),
+  );
+}
+
+class CircloApp extends StatefulWidget {
+  const CircloApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  State<CircloApp> createState() => _CircloAppState();
+}
+
+class _CircloAppState extends State<CircloApp> {
+  @override
+  void initState() {
+    super.initState();
+    _setupFCM();
+    _setupSupabaseRealtimeListener();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  /// ✅ Listen for push notifications via FCM
+  void _setupFCM() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+    // Request permission
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    print('User granted permission: ${settings.authorizationStatus}');
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+    // Get and save FCM token
+    String? token = await messaging.getToken();
+    print("✅ Current FCM Token: $token");
 
-  final String title;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user != null && token != null) {
+      await authProvider.saveFcmToken(authProvider.user!.id);
+      print("✅ FCM token saved for ${authProvider.user!.id}");
+    }
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+    // Foreground notifications
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      NotificationService.showLocalNotification(
+        title: message.notification?.title ?? 'Notification',
+        body: message.notification?.body ?? '',
+      );
+    });
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+    // Tap handling
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('🔔 App opened from notification: ${message.notification?.title}');
     });
   }
 
+  /// Listen for Supabase notifications (from triggers)
+  void _setupSupabaseRealtimeListener() async {
+    final supabase = Supabase.instance.client;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    if (authProvider.user == null) return;
+
+    print('🟢 Listening to Supabase notifications for ${authProvider.user!.id}');
+
+    supabase
+        .channel('public:notifications')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: authProvider.user!.id,
+          ),
+          callback: (payload) async {
+            final newNotification = payload.newRecord;
+            final title = newNotification['title'] ?? 'New Notification';
+            final body = newNotification['body'] ?? '';
+            print('🔔 New Supabase notification: $title');
+            await NotificationService.showLocalNotification(title: title, body: body);
+          },
+        )
+        .subscribe();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return MaterialApp(
+      title: 'Circlo',
+      debugShowCheckedModeBanner: false,
+      theme: circloTheme,
+      home: const SplashScreen(),
     );
   }
 }
