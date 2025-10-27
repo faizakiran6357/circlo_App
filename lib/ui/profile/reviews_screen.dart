@@ -29,7 +29,6 @@
 //     _loadGivenReviews();
 //   }
 
-//   /// 🟢 Load reviews received by current user
 //   Future<void> _loadReceivedReviews() async {
 //     final currentUser = supabase.auth.currentUser;
 //     if (currentUser == null) return;
@@ -59,7 +58,6 @@
 //     }
 //   }
 
-//   /// 🟣 Load reviews given by current user
 //   Future<void> _loadGivenReviews() async {
 //     final currentUser = supabase.auth.currentUser;
 //     if (currentUser == null) return;
@@ -89,30 +87,74 @@
 //     }
 //   }
 
-//   /// Refresh both tabs
 //   Future<void> refreshReviews() async {
 //     await Future.wait([_loadReceivedReviews(), _loadGivenReviews()]);
 //   }
 
-//   /// 🧩 Build each review card
 //   Widget _buildReviewCard(Map<String, dynamic> review) {
 //     final user = review['users'] ?? {};
 
 //     return Card(
-//       elevation: 2,
-//       margin: const EdgeInsets.symmetric(vertical: 8),
-//       child: ListTile(
-//         leading: user['avatar_url'] != null
-//             ? CircleAvatar(backgroundImage: NetworkImage(user['avatar_url']))
-//             : const CircleAvatar(child: Icon(Icons.person)),
-//         title: Text(
-//           user['display_name'] ?? 'Unknown User',
-//           style: const TextStyle(fontWeight: FontWeight.bold),
-//         ),
-//         subtitle: Text(review['comment'] ?? ''),
-//         trailing: Text(
-//           '⭐ ${review['rating'].toString()}',
-//           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber),
+//       color: Colors.white, // ✅ White card
+//       elevation: 3,
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(12),
+//       ),
+//       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+//       child: Padding(
+//         padding: const EdgeInsets.all(12),
+//         child: Row(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             CircleAvatar(
+//               radius: 24,
+//               backgroundImage: user['avatar_url'] != null
+//                   ? NetworkImage(user['avatar_url'])
+//                   : null,
+//               child: user['avatar_url'] == null
+//                   ? const Icon(Icons.person, size: 24)
+//                   : null,
+//             ),
+//             const SizedBox(width: 12),
+//             Expanded(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     user['display_name'] ?? 'Unknown User',
+//                     style: const TextStyle(
+//                         fontWeight: FontWeight.bold, fontSize: 14),
+//                   ),
+//                   const SizedBox(height: 4),
+//                   Text(
+//                     review['comment'] ?? '',
+//                     style: const TextStyle(fontSize: 13, color: Colors.black87),
+//                   ),
+//                   const SizedBox(height: 6),
+//                   Row(
+//                     children: [
+//                       for (int i = 1; i <= 5; i++)
+//                         Icon(
+//                           i <= (review['rating'] ?? 0)
+//                               ? Icons.star
+//                               : Icons.star_border,
+//                           color: Colors.amber,
+//                           size: 16,
+//                         ),
+//                       const SizedBox(width: 6),
+//                       Text(
+//                         review['created_at'] != null
+//                             ? review['created_at'].toString().split('T')[0]
+//                             : '',
+//                         style: const TextStyle(
+//                             fontSize: 11, color: Colors.grey),
+//                       ),
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
 //         ),
 //       ),
 //     );
@@ -121,18 +163,19 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
+//       backgroundColor: kBg,
 //       appBar: AppBar(
 //         title: const Text('Reviews'),
 //         backgroundColor: kGreen,
 //         bottom: TabBar(
 //           controller: _tabController,
 //           tabs: const [Tab(text: 'Received'), Tab(text: 'Given')],
+//           indicatorColor: Colors.white,
 //         ),
 //       ),
 //       body: TabBarView(
 //         controller: _tabController,
 //         children: [
-//           // ✅ RECEIVED REVIEWS
 //           loadingReceived
 //               ? const Center(child: CircularProgressIndicator())
 //               : receivedReviews.isEmpty
@@ -146,8 +189,6 @@
 //                             _buildReviewCard(receivedReviews[index]),
 //                       ),
 //                     ),
-
-//           // ✅ GIVEN REVIEWS
 //           loadingGiven
 //               ? const Center(child: CircularProgressIndicator())
 //               : givenReviews.isEmpty
@@ -261,25 +302,33 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   Widget _buildReviewCard(Map<String, dynamic> review) {
     final user = review['users'] ?? {};
 
-    return Card(
-      color: Colors.white, // ✅ White card
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.black12.withOpacity(0.06)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
               radius: 24,
+              backgroundColor: kBg,
               backgroundImage: user['avatar_url'] != null
                   ? NetworkImage(user['avatar_url'])
                   : null,
               child: user['avatar_url'] == null
-                  ? const Icon(Icons.person, size: 24)
+                  ? const Icon(Icons.person, size: 24, color: kTextDark)
                   : null,
             ),
             const SizedBox(width: 12),
@@ -287,15 +336,47 @@ class _ReviewsScreenState extends State<ReviewsScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user['display_name'] ?? 'Unknown User',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    review['comment'] ?? '',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          user['display_name'] ?? 'Unknown User',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: kTextDark,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: kAmber.withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded,
+                                color: kAmber, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              (review['rating'] ?? 0).toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: kTextDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -305,18 +386,47 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                           i <= (review['rating'] ?? 0)
                               ? Icons.star
                               : Icons.star_border,
-                          color: Colors.amber,
+                          color: kAmber,
                           size: 16,
                         ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Text(
                         review['created_at'] != null
                             ? review['created_at'].toString().split('T')[0]
                             : '',
-                        style: const TextStyle(
-                            fontSize: 11, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: kBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      review['comment'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black87,
+                        height: 1.4,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -332,12 +442,32 @@ class _ReviewsScreenState extends State<ReviewsScreen>
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text('Reviews'),
         backgroundColor: kGreen,
+        centerTitle: true,
+        foregroundColor: Colors.white, // makes back arrow white
+        title: const Text(
+          'Reviews',
+          style: TextStyle(
+            color: Colors.white, // title text white
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Received'), Tab(text: 'Given')],
-          indicatorColor: Colors.white,
+          tabs: const [
+            Tab(text: 'Received'),
+            Tab(text: 'Given'),
+          ],
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          indicator: BoxDecoration(
+            color: Colors.white.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
       body: TabBarView(
@@ -348,6 +478,8 @@ class _ReviewsScreenState extends State<ReviewsScreen>
               : receivedReviews.isEmpty
                   ? const Center(child: Text('No reviews received yet'))
                   : RefreshIndicator(
+                      color: kGreen,
+                      backgroundColor: Colors.white,
                       onRefresh: _loadReceivedReviews,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(12),
@@ -361,6 +493,8 @@ class _ReviewsScreenState extends State<ReviewsScreen>
               : givenReviews.isEmpty
                   ? const Center(child: Text('No reviews given yet'))
                   : RefreshIndicator(
+                      color: kGreen,
+                      backgroundColor: Colors.white,
                       onRefresh: _loadGivenReviews,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(12),

@@ -42,6 +42,36 @@ class SupabaseItemService {
   }
 
 
+// static Future<List<Item>> fetchNearbyItemsPaginated({
+//   required double userLat,
+//   required double userLng,
+//   required double maxRadiusKm,
+//   int page = 1,
+//   int limit = 7,
+// }) async {
+//   final from = (page - 1) * limit;
+//   final to = from + limit - 1;
+
+//   final res = await supabase
+//       .from('items')
+//       .select()
+//       .order('created_at', ascending: false)
+//       .range(from, to);
+
+//   // ✅ Await the mapping
+//   final items = await _mapListToItems(res);
+
+//   // ✅ Filter items by actual distance
+//   return items.where((item) {
+//     final loc = item.location;
+//     if (loc == null) return false;
+//     final lat = (loc['lat'] ?? 0).toDouble();
+//     final lng = (loc['lng'] ?? 0).toDouble();
+//     final distance = _calculateDistanceKm(userLat, userLng, lat, lng);
+//     return distance <= maxRadiusKm;
+//   }).toList();
+// }
+
 static Future<List<Item>> fetchNearbyItemsPaginated({
   required double userLat,
   required double userLng,
@@ -50,7 +80,7 @@ static Future<List<Item>> fetchNearbyItemsPaginated({
   int limit = 7,
 }) async {
   final from = (page - 1) * limit;
-  final to = from + limit - 1;
+  final to = from + (limit + 10) - 1; // fetch a bit more to offset filtering losses
 
   final res = await supabase
       .from('items')
@@ -58,11 +88,9 @@ static Future<List<Item>> fetchNearbyItemsPaginated({
       .order('created_at', ascending: false)
       .range(from, to);
 
-  // ✅ Await the mapping
   final items = await _mapListToItems(res);
 
-  // ✅ Filter items by actual distance
-  return items.where((item) {
+  final nearbyItems = items.where((item) {
     final loc = item.location;
     if (loc == null) return false;
     final lat = (loc['lat'] ?? 0).toDouble();
@@ -70,8 +98,17 @@ static Future<List<Item>> fetchNearbyItemsPaginated({
     final distance = _calculateDistanceKm(userLat, userLng, lat, lng);
     return distance <= maxRadiusKm;
   }).toList();
-}
 
+  // Return only the exact page slice of filtered items
+  final startIndex = (page - 1) * limit;
+  final endIndex = startIndex + limit;
+  return nearbyItems.length > startIndex
+      ? nearbyItems.sublist(
+          startIndex,
+          nearbyItems.length > endIndex ? endIndex : nearbyItems.length,
+        )
+      : [];
+}
 
 
   // ----------------------------------------------------------

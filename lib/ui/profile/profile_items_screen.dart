@@ -149,9 +149,8 @@
 
 //     if (items.isEmpty) {
 //       return Center(
-//         child: Text(isActiveTab
-//             ? 'No active items yet.'
-//             : 'No archived items yet.'),
+//         child:
+//             Text(isActiveTab ? 'No active items yet.' : 'No archived items yet.'),
 //       );
 //     }
 
@@ -209,6 +208,7 @@
 //             ],
 //           ),
 //           child: Card(
+//             color: Colors.white, // ✅ WHITE CARD ADDED HERE
 //             margin: const EdgeInsets.only(bottom: 12),
 //             shape: RoundedRectangleBorder(
 //               borderRadius: BorderRadius.circular(12),
@@ -252,7 +252,8 @@
 //                   final confirm = await showDialog<bool>(
 //                     context: context,
 //                     builder: (ctx) => AlertDialog(
-//                       title: Text(isActiveTab ? 'Archive Item' : 'Unarchive Item'),
+//                       title:
+//                           Text(isActiveTab ? 'Archive Item' : 'Unarchive Item'),
 //                       content: Text(isActiveTab
 //                           ? 'Move this item to archived?'
 //                           : 'Restore this item to active list?'),
@@ -262,7 +263,8 @@
 //                             child: const Text('Cancel')),
 //                         TextButton(
 //                           onPressed: () => Navigator.pop(ctx, true),
-//                           child: Text(isActiveTab ? 'Archive' : 'Unarchive'),
+//                           child:
+//                               Text(isActiveTab ? 'Archive' : 'Unarchive'),
 //                         ),
 //                       ],
 //                     ),
@@ -412,15 +414,34 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text('My Items'),
+        elevation: 0,
+        centerTitle: true,
         backgroundColor: kGreen,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'Archived'),
-          ],
+        surfaceTintColor: kGreen,
+        foregroundColor: Colors.white,
+        title: Text(
+          'My Items',
+          style:
+              Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: TabBar(
+            controller: _tabController,
+            tabs: const [Tab(text: 'Active'), Tab(text: 'Archived')],
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicatorPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            indicator: BoxDecoration(
+              color: Colors.white.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -436,18 +457,57 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
   Widget _buildItemList(List<Item> items, bool loading,
       {required bool isActiveTab}) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(color: kGreen, strokeWidth: 2.6),
+        ),
+      );
     }
 
     if (items.isEmpty) {
       return Center(
-        child:
-            Text(isActiveTab ? 'No active items yet.' : 'No archived items yet.'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: kGreen.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isActiveTab ? Icons.inbox_outlined : Icons.archive_outlined,
+                color: kGreen,
+                size: 34,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isActiveTab ? 'No active items yet' : 'No archived items yet',
+              style:
+                  Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isActiveTab
+                  ? 'Post your item to get started.'
+                  : 'Restore items from archive anytime.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: kTextDark.withOpacity(0.6)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
@@ -467,7 +527,7 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
                     if (value == true) _refreshLists();
                   });
                 },
-                backgroundColor: Colors.blue,
+                backgroundColor: kTeal,
                 foregroundColor: Colors.white,
                 icon: Icons.edit,
                 label: 'Edit',
@@ -485,8 +545,9 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
                             onPressed: () => Navigator.pop(ctx, false),
                             child: const Text('Cancel')),
                         TextButton(
-                            onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text('Delete')),
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Delete'),
+                        ),
                       ],
                     ),
                   );
@@ -500,17 +561,18 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
             ],
           ),
           child: Card(
-            color: Colors.white, // ✅ WHITE CARD ADDED HERE
-            margin: const EdgeInsets.only(bottom: 12),
+            color: Colors.white,
+            margin: const EdgeInsets.only(bottom: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: Colors.black.withOpacity(0.04)),
             ),
-            elevation: 3,
+            elevation: 0,
             child: ListTile(
               contentPadding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
               leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                     ? Image.network(
                         item.imageUrl!,
@@ -521,54 +583,68 @@ class _ProfileItemsScreenState extends State<ProfileItemsScreen>
                     : Container(
                         width: 60,
                         height: 60,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image, color: Colors.white),
+                        color: const Color(0xFFE5E7EB),
+                        child: const Icon(Icons.image, color: Color(0xFF9CA3AF)),
                       ),
               ),
               title: Text(
                 item.title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              subtitle: Text(
-                item.description ?? 'No description',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: IconButton(
-                icon: Icon(
-                  isActiveTab ? Icons.archive : Icons.unarchive,
-                  color: Colors.grey[700],
-                ),
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title:
-                          Text(isActiveTab ? 'Archive Item' : 'Unarchive Item'),
-                      content: Text(isActiveTab
-                          ? 'Move this item to archived?'
-                          : 'Restore this item to active list?'),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text('Cancel')),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child:
-                              Text(isActiveTab ? 'Archive' : 'Unarchive'),
-                        ),
-                      ],
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: 16,
+                      height: 1.2,
                     ),
-                  );
-                  if (confirm == true) {
-                    if (isActiveTab) {
-                      _archiveItem(item.id);
-                    } else {
-                      _unarchiveItem(item.id);
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  item.description ?? 'No description',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: kTextDark.withOpacity(0.7)),
+                ),
+              ),
+              trailing: Container(
+                decoration: BoxDecoration(
+                  color: (isActiveTab ? kAmber : kTeal).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    isActiveTab ? Icons.archive_rounded : Icons.unarchive_rounded,
+                    color: isActiveTab ? kAmber : kTeal,
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title:
+                            Text(isActiveTab ? 'Archive Item' : 'Unarchive Item'),
+                        content: Text(isActiveTab
+                            ? 'Move this item to archived?'
+                            : 'Restore this item to active list?'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel')),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: Text(isActiveTab ? 'Archive' : 'Unarchive'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      if (isActiveTab) {
+                        _archiveItem(item.id);
+                      } else {
+                        _unarchiveItem(item.id);
+                      }
                     }
-                  }
-                },
+                  },
+                ),
               ),
               onTap: () {
                 Navigator.push(
