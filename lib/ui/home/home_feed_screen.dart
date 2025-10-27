@@ -150,14 +150,16 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Circlo'),
+        title: const Text('Circlo',style: TextStyle(color: Colors.white),),
         backgroundColor: kGreen,
+        elevation: 0,
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           final provider = Provider.of<ItemsProvider>(context, listen: false);
           await provider.refreshAll();
-          await _checkIfUserHasFriends(); // refresh also updates this
+          await _checkIfUserHasFriends(); // 
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -170,82 +172,128 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 // Auto Sliding Banners with onTap
                 // ------------------------
                 SizedBox(
-                  height: 160,
-                  child: PageView.builder(
-                    controller: _bannerController,
-                    itemCount: banners.length,
-                    itemBuilder: (context, index) {
-                      final banner = banners[index];
-                      return GestureDetector(
-                        onTap: () {
-                          switch (index) {
-                            case 0:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => OfferItemScreen()),
-                              );
-                              break;
-                            case 1:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => ProfileOverviewScreen()),
-                              );
-                              break;
-                            case 2:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => ChatListScreen()),
-                              );
-                              break;
-                            case 3:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => ViewAllScreen(
-                                        initialTab: 'Trending items')),
-                              );
-                              break;
-                          }
+                  height: 180,
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: _bannerController,
+                        itemCount: banners.length,
+                        onPageChanged: (i) {
+                          setState(() => _currentBanner = i);
                         },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            image: DecorationImage(
-                              image: NetworkImage(banner.imageUrl),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          child: Container(
-                            alignment: Alignment.bottomLeft,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black.withOpacity(0.6),
-                                  Colors.transparent
+                        itemBuilder: (context, index) {
+                          final banner = banners[index];
+                          return GestureDetector(
+                            onTap: () {
+                              switch (index) {
+                                case 0:
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => OfferItemScreen()),
+                                  );
+                                  break;
+                                case 1:
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => ProfileOverviewScreen()),
+                                  );
+                                  break;
+                                case 2:
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => ChatListScreen()),
+                                  );
+                                  break;
+                                case 3:
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => ViewAllScreen(
+                                            initialTab: 'Trending items')),
+                                  );
+                                  break;
+                              }
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
                                 ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
+                                image: DecorationImage(
+                                  image: NetworkImage(banner.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.6),
+                                  width: 0.6,
+                                ),
+                              ),
+                              child: Container(
+                                alignment: Alignment.bottomLeft,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.6),
+                                      Colors.transparent
+                                    ],
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                  ),
+                                ),
+                                child: Text(
+                                  banner.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               ),
                             ),
-                            child: Text(
-                              banner.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+                Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(banners.length, (i) {
+                        final active = i == _currentBanner;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          height: 8,
+                          width: active ? 16 : 8,
+                          decoration: BoxDecoration(
+                            color: active ? kGreen : Colors.white70,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      }),
+                    ),
                   ),
                 ),
 
@@ -259,7 +307,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
                 const SizedBox(height: 20),
 
-                // Friends Section — only if user has friends 👇
+                // Friends Section — only if user has friends 
                 if (_hasFriends)
                   _buildSection(
                     title: 'Friends\' Items',
@@ -295,14 +343,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             if (items.length > 4)
-              TextButton(
+              TextButton.icon(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -311,9 +358,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     ),
                   );
                 },
-                child: const Text(
-                  "View All →",
-                  style: TextStyle(color: kGreen, fontWeight: FontWeight.w600),
+                style: TextButton.styleFrom(
+                  foregroundColor: kGreen,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: const Text(
+                  "View All",
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
           ],
@@ -351,16 +403,17 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         );
       },
       child: Container(
-        width: 160,
+        width: 170,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEFF1F5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -373,12 +426,12 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                   ? Image.network(
                       item.imageUrl!,
-                      height: 100,
+                      height: 104,
                       width: double.infinity,
                       fit: BoxFit.cover,
                     )
                   : Container(
-                      height: 100,
+                      height: 104,
                       width: double.infinity,
                       color: Colors.grey[300],
                       child: const Icon(Icons.image,
@@ -394,14 +447,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 14)),
+                          fontWeight: FontWeight.w700, fontSize: 14, color: kTextDark)),
                   const SizedBox(height: 4),
                   Text(
                     item.description ?? 'No description',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        const TextStyle(fontSize: 12, color: Colors.black87),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -430,4 +482,4 @@ class BannerModel {
   final String imageUrl;
   final String title;
   BannerModel({required this.imageUrl, required this.title});
-}
+}  

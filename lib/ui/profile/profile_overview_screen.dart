@@ -11,6 +11,7 @@
 // import '../profile/reviews_screen.dart';
 // import '../exchange/exchange_requests_screen.dart';
 // import '../auth/login_screen.dart';
+// import 'dart:ui';
 
 // class ProfileOverviewScreen extends StatefulWidget {
 //   const ProfileOverviewScreen({super.key});
@@ -134,18 +135,57 @@
 
 //     final source = await showDialog<ImageSource>(
 //       context: context,
-//       builder: (_) => AlertDialog(
-//         title: const Text('Select Image Source'),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, ImageSource.camera),
-//             child: const Text('Camera'),
+//       builder: (_) => Dialog(
+//         backgroundColor: Colors.transparent,
+//         child: BackdropFilter(
+//           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+//           child: Container(
+//             padding: const EdgeInsets.all(16),
+//             decoration: BoxDecoration(
+//               color: Colors.white.withOpacity(0.08),
+//               borderRadius: BorderRadius.circular(20),
+//               border: Border.all(color: Colors.white.withOpacity(0.1)),
+//             ),
+//             child: Column(
+//               mainAxisSize: MainAxisSize.min,
+//               children: [
+//                 const Text(
+//                   'Select Image Source',
+//                   style: TextStyle(
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 20,
+//                       color: kTextDark),
+//                 ),
+//                 const SizedBox(height: 16),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                   children: [
+//                     ElevatedButton.icon(
+//                       style: ElevatedButton.styleFrom(
+//                           backgroundColor: kGreen,
+//                           shape: RoundedRectangleBorder(
+//                               borderRadius: BorderRadius.circular(12))),
+//                       onPressed: () =>
+//                           Navigator.pop(context, ImageSource.camera),
+//                       icon: const Icon(Icons.camera),
+//                       label: const Text('Camera'),
+//                     ),
+//                     ElevatedButton.icon(
+//                       style: ElevatedButton.styleFrom(
+//                           backgroundColor: kTeal,
+//                           shape: RoundedRectangleBorder(
+//                               borderRadius: BorderRadius.circular(12))),
+//                       onPressed: () =>
+//                           Navigator.pop(context, ImageSource.gallery),
+//                       icon: const Icon(Icons.photo_library),
+//                       label: const Text('Gallery'),
+//                     ),
+//                   ],
+//                 )
+//               ],
+//             ),
 //           ),
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, ImageSource.gallery),
-//             child: const Text('Gallery'),
-//           ),
-//         ],
+//         ),
 //       ),
 //     );
 
@@ -200,25 +240,49 @@
 //     final controller = TextEditingController(text: userData?['display_name']);
 //     showDialog(
 //       context: context,
-//       builder: (_) => AlertDialog(
-//         title: const Text('Edit Display Name'),
-//         content: TextField(
-//           controller: controller,
-//           decoration: const InputDecoration(hintText: 'Enter new name'),
+//       builder: (_) => _glassDialog(
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             const Text('Edit Display Name',
+//                 style: TextStyle(
+//                     fontWeight: FontWeight.bold,
+//                     fontSize: 20,
+//                     color: kTextDark)),
+//             const SizedBox(height: 12),
+//             TextField(
+//               controller: controller,
+//               decoration: InputDecoration(
+//                   hintText: 'Enter new name',
+//                   hintStyle: const TextStyle(fontSize: 14),
+//                   filled: true,
+//                   fillColor: Colors.white.withOpacity(0.08),
+//                   border: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(12),
+//                       borderSide: BorderSide.none)),
+//             ),
+//             const SizedBox(height: 16),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.end,
+//               children: [
+//                 TextButton(
+//                     onPressed: () => Navigator.pop(context),
+//                     child: const Text('Cancel', style: TextStyle(fontSize: 14))),
+//                 const SizedBox(width: 8),
+//                 ElevatedButton(
+//                     style: ElevatedButton.styleFrom(
+//                         backgroundColor: kGreen,
+//                         shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(12))),
+//                     onPressed: () {
+//                       _updateDisplayName(controller.text);
+//                       Navigator.pop(context);
+//                     },
+//                     child: const Text('Save', style: TextStyle(fontSize: 14)))
+//               ],
+//             )
+//           ],
 //         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: const Text('Cancel'),
-//           ),
-//           ElevatedButton(
-//             onPressed: () {
-//               _updateDisplayName(controller.text);
-//               Navigator.pop(context);
-//             },
-//             child: const Text('Save'),
-//           ),
-//         ],
 //       ),
 //     );
 //   }
@@ -228,60 +292,84 @@
 
 //     showDialog(
 //       context: context,
-//       builder: (_) => AlertDialog(
-//         title: const Text('Set Nearby Radius'),
-//         content: StatefulBuilder(
-//           builder: (context, setState) => Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               Text('${current.toInt()} km',
-//                   style: const TextStyle(
-//                       fontWeight: FontWeight.bold, fontSize: 18)),
-//               Slider(
-//                 value: current,
-//                 min: 5,
-//                 max: 200,
-//                 divisions: 39,
-//                 activeColor: kTeal,
-//                 label: '${current.toInt()} km',
-//                 onChanged: (v) => setState(() => current = v),
-//               ),
-//             ],
-//           ),
+//       builder: (_) => _glassDialog(
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             const Text('Set Nearby Radius',
+//                 style: TextStyle(
+//                     fontWeight: FontWeight.bold,
+//                     fontSize: 20,
+//                     color: kTextDark)),
+//             const SizedBox(height: 12),
+//             Text('${current.toInt()} km',
+//                 style: const TextStyle(
+//                     fontWeight: FontWeight.bold, fontSize: 16, color: kTextDark)),
+//             Slider(
+//               value: current,
+//               min: 5,
+//               max: 200,
+//               divisions: 39,
+//               activeColor: kTeal,
+//               label: '${current.toInt()} km',
+//               onChanged: (v) => setState(() => current = v),
+//             ),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.end,
+//               children: [
+//                 TextButton(
+//                     onPressed: () => Navigator.pop(context),
+//                     child: const Text('Cancel', style: TextStyle(fontSize: 14))),
+//                 const SizedBox(width: 8),
+//                 ElevatedButton(
+//                     style: ElevatedButton.styleFrom(
+//                         backgroundColor: kGreen,
+//                         shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(12))),
+//                     onPressed: () {
+//                       _updateRadius(current);
+//                       Navigator.pop(context);
+//                     },
+//                     child: const Text('Save', style: TextStyle(fontSize: 14)))
+//               ],
+//             )
+//           ],
 //         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: const Text('Cancel'),
-//           ),
-//           ElevatedButton(
-//             onPressed: () {
-//               _updateRadius(current);
-//               Navigator.pop(context);
-//             },
-//             child: const Text('Save'),
-//           ),
-//         ],
 //       ),
 //     );
 //   }
 
-//   // ✅ FIXED BUILD METHOD (loading inside Scaffold)
+//   Widget _glassDialog({required Widget child}) {
+//     return Dialog(
+//       backgroundColor: Colors.transparent,
+//       child: BackdropFilter(
+//         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+//         child: Container(
+//           padding: const EdgeInsets.all(20),
+//           decoration: BoxDecoration(
+//               color: Colors.white.withOpacity(0.08),
+//               borderRadius: BorderRadius.circular(20),
+//               border: Border.all(color: Colors.white.withOpacity(0.1))),
+//           child: child,
+//         ),
+//       ),
+//     );
+//   }
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
 //       backgroundColor: kBg,
 //       appBar: AppBar(
-//         title: const Align(
-//           alignment: Alignment.centerLeft,
-//           child: Text('Profile'),
-//         ),
+//         title: const Text('Profile', style: TextStyle(fontSize: 20)),
 //         backgroundColor: kGreen,
+//         elevation: 0,
 //       ),
 //       body: loading
 //           ? const Center(child: CircularProgressIndicator())
 //           : userData == null
-//               ? const Center(child: Text('User not found'))
+//               ? const Center(
+//                   child: Text('User not found', style: TextStyle(fontSize: 14)))
 //               : SingleChildScrollView(
 //                   padding: const EdgeInsets.all(16),
 //                   child: Column(
@@ -300,13 +388,90 @@
 //     );
 //   }
 
+//   Widget _buildUserHeader() {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: Colors.white.withOpacity(0.08),
+//         borderRadius: BorderRadius.circular(20),
+//         border: Border.all(color: Colors.white.withOpacity(0.08)),
+//       ),
+//       child: Row(
+//         children: [
+//           Stack(
+//             children: [
+//               CircleAvatar(
+//                 radius: 48,
+//                 backgroundColor: kGreen.withOpacity(0.2),
+//                 backgroundImage: userData!['avatar_url'] != null
+//                     ? NetworkImage(userData!['avatar_url'])
+//                     : null,
+//                 child: uploadingAvatar
+//                     ? const CircularProgressIndicator()
+//                     : (userData!['avatar_url'] == null
+//                         ? const Icon(Icons.person, size: 36, color: kGreen)
+//                         : null),
+//               ),
+//               Positioned(
+//                 bottom: 0,
+//                 right: 0,
+//                 child: InkWell(
+//                   onTap: _pickAndUploadAvatar,
+//                   child: CircleAvatar(
+//                     radius: 16,
+//                     backgroundColor: kGreen,
+//                     child:
+//                         const Icon(Icons.edit, size: 18, color: Colors.white),
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//           const SizedBox(width: 16),
+//           Expanded(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Row(
+//                   children: [
+//                     Expanded(
+//                       child: Text(
+//                         userData!['display_name'] ?? 'Unknown User',
+//                         style: const TextStyle(
+//                             fontSize: 20,
+//                             fontWeight: FontWeight.bold,
+//                             color: kTextDark),
+//                       ),
+//                     ),
+//                     IconButton(
+//                       icon: const Icon(Icons.edit, size: 20, color: kTeal),
+//                       onPressed: _showEditNameDialog,
+//                     ),
+//                   ],
+//                 ),
+//                 Text(userData!['email'] ?? '',
+//                     style: const TextStyle(fontSize: 14, color: Colors.black54)),
+//                 if (userData!['bio'] != null) ...[
+//                   const SizedBox(height: 4),
+//                   Text(userData!['bio'],
+//                       style:
+//                           const TextStyle(fontSize: 14, color: Colors.black87)),
+//                 ]
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
 //   Widget _buildRadiusSection() {
 //     final radius = (userData?['radius_km'] ?? 30).toDouble();
 //     return Container(
-//       padding: const EdgeInsets.all(12),
+//       padding: const EdgeInsets.all(14),
 //       decoration: BoxDecoration(
 //         color: kTeal.withOpacity(0.08),
-//         borderRadius: BorderRadius.circular(12),
+//         borderRadius: BorderRadius.circular(16),
 //       ),
 //       child: Row(
 //         children: [
@@ -315,109 +480,61 @@
 //           Expanded(
 //             child: Text(
 //               'Search radius: ${radius.toInt()} km',
-//               style: const TextStyle(fontSize: 16),
+//               style: const TextStyle(fontSize: 14),
 //             ),
 //           ),
 //           TextButton(
 //             onPressed: _showEditRadiusDialog,
-//             child: const Text('Edit'),
+//             child: const Text('Edit', style: TextStyle(fontSize: 14)),
 //           )
 //         ],
 //       ),
 //     );
 //   }
 
-//   Widget _buildUserHeader() {
-//     return Row(
-//       children: [
-//         Stack(
-//           children: [
-//             CircleAvatar(
-//               radius: 40,
-//               backgroundImage: userData!['avatar_url'] != null
-//                   ? NetworkImage(userData!['avatar_url'])
-//                   : null,
-//               child: uploadingAvatar
-//                   ? const CircularProgressIndicator()
-//                   : (userData!['avatar_url'] == null
-//                       ? const Icon(Icons.person, size: 40)
-//                       : null),
-//             ),
-//             Positioned(
-//               bottom: 0,
-//               right: 0,
-//               child: InkWell(
-//                 onTap: _pickAndUploadAvatar,
-//                 child: CircleAvatar(
-//                   radius: 12,
-//                   backgroundColor: kGreen,
-//                   child:
-//                       const Icon(Icons.edit, size: 14, color: Colors.white),
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//         const SizedBox(width: 16),
-//         Expanded(
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Row(
-//                 children: [
-//                   Expanded(
-//                     child: Text(
-//                       userData!['display_name'] ?? 'Unknown User',
-//                       style: const TextStyle(
-//                           fontSize: 20, fontWeight: FontWeight.bold),
-//                     ),
-//                   ),
-//                   IconButton(
-//                     icon: const Icon(Icons.edit, size: 20),
-//                     onPressed: _showEditNameDialog,
-//                   ),
-//                 ],
-//               ),
-//               Text(userData!['email'] ?? '',
-//                   style: const TextStyle(color: Colors.grey)),
-//               if (userData!['bio'] != null) ...[
-//                 const SizedBox(height: 4),
-//                 Text(userData!['bio'],
-//                     style: const TextStyle(color: Colors.black87)),
-//               ]
-//             ],
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
 //   Widget _buildStatsRow() {
 //     return Row(
-//       mainAxisAlignment: MainAxisAlignment.spaceAround,
+//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
 //       children: [
-//         _buildStatCard('Points', userData!['points']?.toString() ?? '0'),
-//         _buildStatCard(
-//             'Trust Score', userData!['trust_score']?.toString() ?? '0'),
-//         _buildStatCard('Exchanges', exchangeCount.toString()),
+//         _buildStatCard('Points', userData!['points']?.toString() ?? '0',
+//             kAmber.withOpacity(0.15)),
+//         _buildStatCard('Trust Score',
+//             userData!['trust_score']?.toString() ?? '0', kTeal.withOpacity(0.15)),
+//         _buildStatCard('Exchanges', exchangeCount.toString(),
+//             kGreen.withOpacity(0.15)),
 //       ],
 //     );
 //   }
 
-//   Widget _buildStatCard(String title, String value) {
-//     return Container(
-//       padding: const EdgeInsets.all(12),
-//       decoration: BoxDecoration(
-//         color: kGreen.withOpacity(0.1),
-//         borderRadius: BorderRadius.circular(12),
-//       ),
-//       child: Column(
-//         children: [
-//           Text(value,
-//               style: const TextStyle(
-//                   fontSize: 16, fontWeight: FontWeight.bold)),
-//           Text(title, style: const TextStyle(color: Colors.black54)),
-//         ],
+//   Widget _buildStatCard(String title, String value, Color bgColor) {
+//     return Expanded(
+//       child: Container(
+//         margin: const EdgeInsets.symmetric(horizontal: 4),
+//         padding: const EdgeInsets.symmetric(vertical: 16),
+//         decoration: BoxDecoration(
+//           gradient: LinearGradient(
+//               colors: [bgColor.withOpacity(0.5), bgColor.withOpacity(0.1)],
+//               begin: Alignment.topLeft,
+//               end: Alignment.bottomRight),
+//           borderRadius: BorderRadius.circular(14),
+//           boxShadow: [
+//             BoxShadow(
+//                 color: Colors.black.withOpacity(0.05),
+//                 blurRadius: 8,
+//                 offset: const Offset(0, 4))
+//           ],
+//         ),
+//         child: Column(
+//           children: [
+//             Text(value,
+//                 style: const TextStyle(
+//                     fontSize: 16, fontWeight: FontWeight.bold, color: kTextDark)),
+//             const SizedBox(height: 4),
+//             Text(title,
+//                 style: const TextStyle(
+//                     fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w500)),
+//           ],
+//         ),
 //       ),
 //     );
 //   }
@@ -448,10 +565,11 @@
 //             backgroundColor: Colors.redAccent,
 //             minimumSize: const Size(double.infinity, 48),
 //             shape:
-//                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
 //           ),
 //           onPressed: _logout,
-//           child: const Text('Logout', style: TextStyle(color: Colors.white)),
+//           child: const Text('Logout',
+//               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
 //         ),
 //       ],
 //     );
@@ -466,16 +584,20 @@
 //       style: ElevatedButton.styleFrom(
 //         backgroundColor: color,
 //         minimumSize: const Size(double.infinity, 48),
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+//         elevation: 4,
 //       ),
 //       onPressed: () => Navigator.push(
 //         context,
 //         MaterialPageRoute(builder: (_) => screen),
 //       ),
-//       child: Text(label, style: const TextStyle(color: Colors.white)),
+//       child: Text(label,
+//           style: const TextStyle(
+//               color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
 //     );
 //   }
 // }
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -612,55 +734,61 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
 
     final source = await showDialog<ImageSource>(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.1),
       builder: (_) => Dialog(
         backgroundColor: Colors.transparent,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Select Image Source',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: kTextDark),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: kGreen,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12))),
-                      onPressed: () =>
-                          Navigator.pop(context, ImageSource.camera),
-                      icon: const Icon(Icons.camera),
-                      label: const Text('Camera'),
-                    ),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: kTeal,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12))),
-                      onPressed: () =>
-                          Navigator.pop(context, ImageSource.gallery),
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text('Gallery'),
-                    ),
-                  ],
-                )
-              ],
-            ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Image Source',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: kTextDark),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: kGreen,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12))),
+                    onPressed: () =>
+                        Navigator.pop(context, ImageSource.camera),
+                    icon: const Icon(Icons.camera),
+                    label: const Text('Camera'),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: kTeal,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12))),
+                    onPressed: () =>
+                        Navigator.pop(context, ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Gallery'),
+                  ),
+                ],
+              )
+            ],
           ),
         ),
       ),
@@ -717,6 +845,7 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
     final controller = TextEditingController(text: userData?['display_name']);
     showDialog(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.1),
       builder: (_) => _glassDialog(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -733,10 +862,16 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
                   hintText: 'Enter new name',
                   hintStyle: const TextStyle(fontSize: 14),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.08),
-                  border: OutlineInputBorder(
+                  fillColor: kBg,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none)),
+                      borderSide: const BorderSide(color: Colors.black12)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: kGreen, width: 1.8))),
             ),
             const SizedBox(height: 16),
             Row(
@@ -769,48 +904,51 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
 
     showDialog(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.1),
       builder: (_) => _glassDialog(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Set Nearby Radius',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: kTextDark)),
-            const SizedBox(height: 12),
-            Text('${current.toInt()} km',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16, color: kTextDark)),
-            Slider(
-              value: current,
-              min: 5,
-              max: 200,
-              divisions: 39,
-              activeColor: kTeal,
-              label: '${current.toInt()} km',
-              onChanged: (v) => setState(() => current = v),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(fontSize: 14))),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: kGreen,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12))),
-                    onPressed: () {
-                      _updateRadius(current);
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Save', style: TextStyle(fontSize: 14)))
-              ],
-            )
-          ],
+        child: StatefulBuilder(
+          builder: (context, setStateDialog) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Set Nearby Radius',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: kTextDark)),
+              const SizedBox(height: 12),
+              Text('${current.toInt()} km',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16, color: kTextDark)),
+              Slider(
+                value: current,
+                min: 5,
+                max: 200,
+                divisions: 39,
+                activeColor: kTeal,
+                label: '${current.toInt()} km',
+                onChanged: (v) => setStateDialog(() => current = v),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel', style: TextStyle(fontSize: 14))),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: kGreen,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12))),
+                      onPressed: () {
+                        _updateRadius(current);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Save', style: TextStyle(fontSize: 14)))
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -819,16 +957,23 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
   Widget _glassDialog({required Widget child}) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1))),
-          child: child,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container
+      (
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            )
+          ],
         ),
+        child: child,
       ),
     );
   }
@@ -838,17 +983,21 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontSize: 20)),
-        backgroundColor: kGreen,
-        elevation: 0,
-      ),
+  title: const Text('Profile', style: TextStyle(fontSize: 20)),
+  centerTitle: true,
+  backgroundColor: kGreen,
+  elevation: 0,
+  foregroundColor: Colors.white, 
+  surfaceTintColor: Colors.transparent,
+),
+
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : userData == null
               ? const Center(
                   child: Text('User not found', style: TextStyle(fontSize: 14)))
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -867,38 +1016,49 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
 
   Widget _buildUserHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        gradient: LinearGradient(
+          colors: [kGreen.withOpacity(0.12), kTeal.withOpacity(0.10)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.10)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          )
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Stack(
             children: [
               CircleAvatar(
-                radius: 48,
-                backgroundColor: kGreen.withOpacity(0.2),
+                radius: 50,
+                backgroundColor: kGreen.withOpacity(0.18),
                 backgroundImage: userData!['avatar_url'] != null
                     ? NetworkImage(userData!['avatar_url'])
                     : null,
                 child: uploadingAvatar
                     ? const CircularProgressIndicator()
                     : (userData!['avatar_url'] == null
-                        ? const Icon(Icons.person, size: 36, color: kGreen)
+                        ? const Icon(Icons.person, size: 38, color: kGreen)
                         : null),
               ),
               Positioned(
-                bottom: 0,
-                right: 0,
+                bottom: 2,
+                right: 2,
                 child: InkWell(
                   onTap: _pickAndUploadAvatar,
                   child: CircleAvatar(
                     radius: 16,
                     backgroundColor: kGreen,
-                    child:
-                        const Icon(Icons.edit, size: 18, color: Colors.white),
+                    child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
                   ),
                 ),
               ),
@@ -915,24 +1075,30 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
                       child: Text(
                         userData!['display_name'] ?? 'Unknown User',
                         style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
                             color: kTextDark),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit, size: 20, color: kTeal),
+                      icon: const Icon(Icons.edit_outlined, size: 20, color: kTeal),
                       onPressed: _showEditNameDialog,
                     ),
                   ],
                 ),
-                Text(userData!['email'] ?? '',
-                    style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                const SizedBox(height: 4),
+                Text(
+                  userData!['email'] ?? '',
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                ),
                 if (userData!['bio'] != null) ...[
-                  const SizedBox(height: 4),
-                  Text(userData!['bio'],
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  Text(
+                    userData!['bio'],
+                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ]
               ],
             ),
@@ -945,24 +1111,46 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
   Widget _buildRadiusSection() {
     final radius = (userData?['radius_km'] ?? 30).toDouble();
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: kTeal.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ],
+        border: Border.all(color: kTeal.withOpacity(0.15)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.my_location, color: kTeal),
-          const SizedBox(width: 10),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: kTeal.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.my_location, color: kTeal),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Search radius: ${radius.toInt()} km',
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: kTextDark),
             ),
           ),
           TextButton(
             onPressed: _showEditRadiusDialog,
-            child: const Text('Edit', style: TextStyle(fontSize: 14)),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: kTeal,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Edit', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           )
         ],
       ),
@@ -987,29 +1175,31 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-              colors: [bgColor.withOpacity(0.5), bgColor.withOpacity(0.1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(14),
+            colors: [bgColor.withOpacity(0.55), bgColor.withOpacity(0.12)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 4))
           ],
+          border: Border.all(color: Colors.white.withOpacity(0.18)),
         ),
         child: Column(
           children: [
             Text(value,
                 style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold, color: kTextDark)),
-            const SizedBox(height: 4),
+                    fontSize: 18, fontWeight: FontWeight.w800, color: kTextDark)),
+            const SizedBox(height: 6),
             Text(title,
                 style: const TextStyle(
-                    fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w500)),
+                    fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -1059,18 +1249,40 @@ class _ProfileOverviewScreenState extends State<ProfileOverviewScreen> {
   }) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        minimumSize: const Size(double.infinity, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        elevation: 4,
+        backgroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.06),
       ),
       onPressed: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => screen),
       ),
-      child: Text(label,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: const TextStyle(
+                    color: kTextDark, fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+            ],
+          ),
+          const Icon(Icons.chevron_right, color: Colors.black54),
+        ],
+      ),
     );
   }
 }

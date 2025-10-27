@@ -1,4 +1,277 @@
 
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import 'package:supabase_flutter/supabase_flutter.dart';
+// import '../../providers/items_provider.dart';
+// import '../../models/item_model.dart';
+// import '../../utils/app_theme.dart';
+// import '../item_detail/item_detail_screen.dart';
+
+// class ViewAllScreen extends StatefulWidget {
+//   final String initialTab; // e.g. "Nearby Items"
+
+//   const ViewAllScreen({super.key, required this.initialTab});
+
+//   @override
+//   State<ViewAllScreen> createState() => _ViewAllScreenState();
+// }
+
+// class _ViewAllScreenState extends State<ViewAllScreen>
+//     with SingleTickerProviderStateMixin {
+//   late TabController _tabController;
+
+//   final List<String> tabs = ["Nearby Items", "Friends' Items", "Trending Items"];
+//   late ScrollController _nearbyScrollController;
+//   late ScrollController _friendsScrollController;
+//   late ScrollController _trendingScrollController;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     final initialIndex = tabs.indexOf(widget.initialTab);
+//     _tabController = TabController(
+//       length: tabs.length,
+//       vsync: this,
+//       initialIndex: initialIndex >= 0 ? initialIndex : 0,
+//     );
+
+//     final provider = Provider.of<ItemsProvider>(context, listen: false);
+//     provider.loadNearby(reset: true);
+//     provider.loadFriends(reset: true);
+//     provider.loadTrending(reset: true);
+
+//     _nearbyScrollController = ScrollController()..addListener(() => _scrollListener(0));
+//     _friendsScrollController = ScrollController()..addListener(() => _scrollListener(1));
+//     _trendingScrollController = ScrollController()..addListener(() => _scrollListener(2));
+//   }
+
+//   @override
+//   void dispose() {
+//     _tabController.dispose();
+//     _nearbyScrollController.dispose();
+//     _friendsScrollController.dispose();
+//     _trendingScrollController.dispose();
+//     super.dispose();
+//   }
+
+//   Future<String> _fetchOwnerName(String userId) async {
+//     final supabase = Supabase.instance.client;
+//     try {
+//       final res = await supabase
+//           .from('users')
+//           .select('display_name')
+//           .eq('id', userId)
+//           .maybeSingle();
+//       return res?['display_name'] ?? 'Unknown';
+//     } catch (_) {
+//       return 'Unknown';
+//     }
+//   }
+
+//   void _scrollListener(int tabIndex) {
+//     final provider = Provider.of<ItemsProvider>(context, listen: false);
+//     ScrollController controller;
+//     bool hasMore;
+
+//     switch (tabIndex) {
+//       case 0:
+//         controller = _nearbyScrollController;
+//         hasMore = provider.hasMoreNearby;
+//         break;
+//       case 1:
+//         controller = _friendsScrollController;
+//         hasMore = provider.hasMoreFriends;
+//         break;
+//       case 2:
+//         controller = _trendingScrollController;
+//         hasMore = provider.hasMoreTrending;
+//         break;
+//       default:
+//         return;
+//     }
+
+//     if (controller.position.pixels >= controller.position.maxScrollExtent - 200 && hasMore) {
+//       switch (tabIndex) {
+//         case 0:
+//           provider.loadNearby();
+//           break;
+//         case 1:
+//           provider.loadFriends();
+//           break;
+//         case 2:
+//           provider.loadTrending();
+//           break;
+//       }
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final provider = Provider.of<ItemsProvider>(context);
+
+//     return Scaffold(
+//       backgroundColor: kBg,
+//       appBar: AppBar(
+//         elevation: 0,
+//         centerTitle: true,
+//         backgroundColor: kGreen,
+//         surfaceTintColor: kGreen,
+//         foregroundColor: Colors.white,
+//         title: Text(
+//           "All Items",
+//           style: Theme.of(context)
+//               .textTheme
+//               .titleLarge
+//               ?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+//         ),
+//         bottom: PreferredSize(
+//           preferredSize: const Size.fromHeight(56),
+//           child: TabBar(
+//             controller: _tabController,
+//             tabs: const [
+//               Tab(text: "Nearby"),
+//               Tab(text: "Friends"),
+//               Tab(text: "Trending"),
+//             ],
+//             labelColor: Colors.white,
+//             unselectedLabelColor: Colors.white70,
+//             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+//             indicatorSize: TabBarIndicatorSize.tab,
+//             indicatorPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+//             indicator: BoxDecoration(
+//               color: Colors.white.withOpacity(0.18),
+//               borderRadius: BorderRadius.circular(10),
+//             ),
+//           ),
+//         ),
+//       ),
+//       body: TabBarView(
+//         controller: _tabController,
+//         children: [
+//           _buildList(provider.nearbyItems, _nearbyScrollController, provider.loadingNearby),
+//           _buildList(provider.friendItems, _friendsScrollController, provider.loadingFriends),
+//           _buildList(provider.trendingItems, _trendingScrollController, provider.loadingTrending),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildList(List<Item> items, ScrollController controller, bool isLoading) {
+//     if (isLoading) {
+//       return const Center(
+//         child: SizedBox(
+//           width: 28,
+//           height: 28,
+//           child: CircularProgressIndicator(color: kGreen, strokeWidth: 2.6),
+//         ),
+//       );
+//     }
+
+//     if (items.isEmpty) {
+//       return const Center(
+//         child: Text(
+//           "No items found.",
+//           style: TextStyle(fontSize: 16, color: kTextDark),
+//         ),
+//       );
+//     }
+
+//     return ListView.builder(
+//       controller: controller,
+//       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+//       itemCount: items.length + (isLoading ? 1 : 0),
+//       itemBuilder: (context, index) {
+//         if (index >= items.length) {
+//           return const Padding(
+//             padding: EdgeInsets.symmetric(vertical: 20),
+//             child: Center(child: CircularProgressIndicator(color: kGreen)),
+//           );
+//         }
+
+//         final item = items[index];
+//         return FutureBuilder<String>(
+//           future: _fetchOwnerName(item.userId),
+//           builder: (context, snapshot) {
+//             final ownerName = snapshot.data ?? 'Loading...';
+//             return GestureDetector(
+//               onTap: () => Navigator.push(
+//                 context,
+//                 MaterialPageRoute(builder: (_) => ItemDetailScreen(item: item)),
+//               ),
+//               child: Card(
+//                 color: Colors.white,
+//                 margin: const EdgeInsets.only(bottom: 14),
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(16),
+//                   side: BorderSide(color: Colors.black.withOpacity(0.04)),
+//                 ),
+//                 elevation: 0,
+//                 child: Padding(
+//                   padding: const EdgeInsets.all(10),
+//                   child: Row(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       ClipRRect(
+//                         borderRadius: BorderRadius.circular(10),
+//                         child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+//                             ? Image.network(
+//                                 item.imageUrl!,
+//                                 height: 80,
+//                                 width: 80,
+//                                 fit: BoxFit.cover,
+//                               )
+//                             : Container(
+//                                 height: 80,
+//                                 width: 80,
+//                                 color: const Color(0xFFE5E7EB),
+//                                 child: const Icon(Icons.image, color: Color(0xFF9CA3AF)),
+//                               ),
+//                       ),
+//                       const SizedBox(width: 12),
+//                       Expanded(
+//                         child: Column(
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Text(
+//                               item.title,
+//                               style: Theme.of(context)
+//                                   .textTheme
+//                                   .titleLarge
+//                                   ?.copyWith(fontSize: 16, height: 1.2),
+//                             ),
+//                             const SizedBox(height: 4),
+//                             Text(
+//                               item.description ?? 'No description',
+//                               maxLines: 2,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: Theme.of(context)
+//                                   .textTheme
+//                                   .bodyMedium
+//                                   ?.copyWith(color: kTextDark.withOpacity(0.7)),
+//                             ),
+//                             const SizedBox(height: 6),
+//                             Text(
+//                               "Owner: $ownerName",
+//                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+//                                     fontSize: 12,
+//                                     color: kTextDark.withOpacity(0.6),
+//                                     fontStyle: FontStyle.italic,
+//                                   ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             );
+//           },
+//         );
+//       },
+//     );
+//   }
+// }
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,6 +301,7 @@ class _ViewAllScreenState extends State<ViewAllScreen>
   @override
   void initState() {
     super.initState();
+
     final initialIndex = tabs.indexOf(widget.initialTab);
     _tabController = TabController(
       length: tabs.length,
@@ -35,11 +309,13 @@ class _ViewAllScreenState extends State<ViewAllScreen>
       initialIndex: initialIndex >= 0 ? initialIndex : 0,
     );
 
+    // Load first batch for all tabs
     final provider = Provider.of<ItemsProvider>(context, listen: false);
     provider.loadNearby(reset: true);
     provider.loadFriends(reset: true);
     provider.loadTrending(reset: true);
 
+    // Initialize scroll controllers
     _nearbyScrollController = ScrollController()..addListener(() => _scrollListener(0));
     _friendsScrollController = ScrollController()..addListener(() => _scrollListener(1));
     _trendingScrollController = ScrollController()..addListener(() => _scrollListener(2));
@@ -54,6 +330,9 @@ class _ViewAllScreenState extends State<ViewAllScreen>
     super.dispose();
   }
 
+  // ------------------------------------------------------------
+  // 🔍 Fetch owner name (from Supabase users table)
+  // ------------------------------------------------------------
   Future<String> _fetchOwnerName(String userId) async {
     final supabase = Supabase.instance.client;
     try {
@@ -68,29 +347,41 @@ class _ViewAllScreenState extends State<ViewAllScreen>
     }
   }
 
+  // ------------------------------------------------------------
+  // 🔁 Scroll listener for pagination
+  // ------------------------------------------------------------
   void _scrollListener(int tabIndex) {
     final provider = Provider.of<ItemsProvider>(context, listen: false);
-    ScrollController controller;
-    bool hasMore;
+
+    late ScrollController controller;
+    late bool isLoading;
+    late bool hasMore;
 
     switch (tabIndex) {
       case 0:
         controller = _nearbyScrollController;
+        isLoading = provider.loadingNearby;
         hasMore = provider.hasMoreNearby;
         break;
       case 1:
         controller = _friendsScrollController;
+        isLoading = provider.loadingFriends;
         hasMore = provider.hasMoreFriends;
         break;
       case 2:
         controller = _trendingScrollController;
+        isLoading = provider.loadingTrending;
         hasMore = provider.hasMoreTrending;
         break;
       default:
         return;
     }
 
-    if (controller.position.pixels >= controller.position.maxScrollExtent - 200 && hasMore) {
+    // ✅ Trigger load when near bottom & not already loading
+    if (controller.position.pixels >=
+            controller.position.maxScrollExtent - 200 &&
+        hasMore &&
+        !isLoading) {
       switch (tabIndex) {
         case 0:
           provider.loadNearby();
@@ -105,50 +396,98 @@ class _ViewAllScreenState extends State<ViewAllScreen>
     }
   }
 
+  // ------------------------------------------------------------
+  // 🧱 Build UI
+  // ------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ItemsProvider>(context);
 
     return Scaffold(
+      backgroundColor: kBg,
       appBar: AppBar(
-        title: const Text("All Items"),
+        elevation: 0,
+        centerTitle: true,
         backgroundColor: kGreen,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          indicatorColor: Colors.white,
-          tabs: const [
-            Tab(text: "Nearby"),
-            Tab(text: "Friends"),
-            Tab(text: "Trending"),
-          ],
+        surfaceTintColor: kGreen,
+        foregroundColor: Colors.white,
+        title: Text(
+          "All Items",
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: "Nearby"),
+              Tab(text: "Friends"),
+              Tab(text: "Trending"),
+            ],
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicatorPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            indicator: BoxDecoration(
+              color: Colors.white.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildList(provider.nearbyItems, _nearbyScrollController, provider.loadingNearby),
-          _buildList(provider.friendItems, _friendsScrollController, provider.loadingFriends),
-          _buildList(provider.trendingItems, _trendingScrollController, provider.loadingTrending),
+          _buildList(provider.nearbyItems, _nearbyScrollController,
+              provider.loadingNearby, provider.hasMoreNearby),
+          _buildList(provider.friendItems, _friendsScrollController,
+              provider.loadingFriends, provider.hasMoreFriends),
+          _buildList(provider.trendingItems, _trendingScrollController,
+              provider.loadingTrending, provider.hasMoreTrending),
         ],
       ),
     );
   }
 
-  Widget _buildList(List<Item> items, ScrollController controller, bool isLoading) {
+  // ------------------------------------------------------------
+  // 🧱 Build Item List
+  // ------------------------------------------------------------
+  Widget _buildList(
+    List<Item> items,
+    ScrollController controller,
+    bool isLoading,
+    bool hasMore,
+  ) {
+    if (items.isEmpty && isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: kGreen, strokeWidth: 2.6),
+      );
+    }
+
     if (items.isEmpty && !isLoading) {
-      return const Center(child: Text("No items found."));
+      return const Center(
+        child: Text(
+          "No items found.",
+          style: TextStyle(fontSize: 16, color: kTextDark),
+        ),
+      );
     }
 
     return ListView.builder(
       controller: controller,
-      padding: const EdgeInsets.all(12),
-      itemCount: items.length + (isLoading ? 1 : 0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      itemCount: items.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= items.length) {
+          // ✅ show bottom loader when fetching next page
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator(color: kGreen)),
           );
         }
 
@@ -160,33 +499,38 @@ class _ViewAllScreenState extends State<ViewAllScreen>
             return GestureDetector(
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => ItemDetailScreen(item: item)),
+                MaterialPageRoute(
+                    builder: (_) => ItemDetailScreen(item: item)),
               ),
               child: Card(
+                color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.black.withOpacity(0.04)),
                 ),
-                elevation: 4,
+                elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(10),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                        borderRadius: BorderRadius.circular(10),
+                        child: item.imageUrl != null &&
+                                item.imageUrl!.isNotEmpty
                             ? Image.network(
                                 item.imageUrl!,
-                                height: 90,
-                                width: 90,
+                                height: 80,
+                                width: 80,
                                 fit: BoxFit.cover,
                               )
                             : Container(
-                                height: 90,
-                                width: 90,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.image, color: Colors.white),
+                                height: 80,
+                                width: 80,
+                                color: const Color(0xFFE5E7EB),
+                                child: const Icon(Icons.image,
+                                    color: Color(0xFF9CA3AF)),
                               ),
                       ),
                       const SizedBox(width: 12),
@@ -196,29 +540,33 @@ class _ViewAllScreenState extends State<ViewAllScreen>
                           children: [
                             Text(
                               item.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontSize: 16, height: 1.2),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               item.description ?? 'No description',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.black87,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color: kTextDark.withOpacity(0.7)),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               "Owner: $ownerName",
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.black54,
-                                fontStyle: FontStyle.italic,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: kTextDark.withOpacity(0.6),
+                                    fontStyle: FontStyle.italic,
+                                  ),
                             ),
                           ],
                         ),
